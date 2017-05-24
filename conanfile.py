@@ -15,6 +15,7 @@ class BPTreeConan(ConanFile):
         'enable_conan': [True, False],
     }
     default_options = (
+        'gtest:shared=False',
         'enable_conan=True',
     )
 
@@ -22,12 +23,21 @@ class BPTreeConan(ConanFile):
         'CMakeLists.txt',
         'cmake/*.cmake',
         'include/*.hpp',
+        'test/CMakeLists.txt',
+        'test/*.cpp',
     )
+
+    def requirements(self):
+        if self.scope.dev and self.scope.build_tests:
+            self.requires('gtest/1.8.0@lasote/stable', private=True)
 
     def build(self):
         extra_opts = []
         extra_opts.append('-DENABLE_CONAN={}'.format(
             self.options.enable_conan,
+        ))
+        extra_opts.append('-DBUILD_TESTING={}'.format(
+            bool(self.scope.dev and self.scope.build_tests),
         ))
         extra_opts.append('-DCMAKE_INSTALL_PREFIX="{}"'.format(
             self.package_folder,

@@ -32,4 +32,9 @@ install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
 )
 
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(test)
+endif(BUILD_TESTING)
+
 include(cmake/${PROJECT_NAME}Package.cmake)
