@@ -6,13 +6,15 @@
  *  Distributed under MIT License
  ************************************************/
 
+#include <cstddef>
+
 #include <gtest/gtest.h>
 
 #include <bptree/internal/static_vector.hpp>
 
 using bptree::internal::static_vector;
 
-int const N = 10;
+std::size_t const N = 10;
 
 TEST(StaticVectorTest, EmptyVector) {
     static_vector<int, N> v;
