@@ -37,6 +37,7 @@ class static_vector {
     bool full() const noexcept;
     size_type size() const noexcept;
     constexpr size_type max_size() const noexcept;
+    constexpr size_type capacity() const noexcept;
 
  private:  // Private Property(ies)
     size_type size_;
@@ -71,6 +72,12 @@ template <typename T, std::size_t N>
 inline constexpr typename static_vector<T, N>::size_type
 static_vector<T, N>::max_size() const noexcept {
     return N;
+}
+
+template <typename T, std::size_t N>
+inline constexpr typename static_vector<T, N>::size_type
+static_vector<T, N>::capacity() const noexcept {
+    return max_size();
 }
 
 }  // namespace internal

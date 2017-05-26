@@ -20,4 +20,5 @@ TEST(StaticVectorTest, EmptyVector) {
     EXPECT_FALSE(v.full());
     EXPECT_EQ(0, v.size());
     EXPECT_EQ(N, v.max_size());
+    EXPECT_EQ(N, v.capacity());
 }
