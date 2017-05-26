@@ -8,6 +8,8 @@
 
 #include <cstddef>
 
+#include <stdexcept>
+
 #include <gtest/gtest.h>
 
 #include <bptree/internal/static_vector.hpp>
@@ -23,4 +25,5 @@ TEST(StaticVectorTest, EmptyVector) {
     EXPECT_EQ(0, v.size());
     EXPECT_EQ(N, v.max_size());
     EXPECT_EQ(N, v.capacity());
+    EXPECT_THROW(v.at(0), std::out_of_range);
 }

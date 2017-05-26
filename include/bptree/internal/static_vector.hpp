@@ -11,6 +11,8 @@
 
 #include <cstddef>
 
+#include <stdexcept>
+
 namespace bptree {
 
 namespace internal {
@@ -33,6 +35,9 @@ class static_vector {
  public:  // Public Method(s)
     static_vector() noexcept;
 
+    reference at(size_type pos);
+    const_reference at(size_type pos) const;
+
     bool empty() const noexcept;
     bool full() const noexcept;
     size_type size() const noexcept;
@@ -51,6 +56,26 @@ template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector() noexcept
   : size_(0) {
     // do nothing
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::reference static_vector<T, N>::at(size_type pos) {
+    if (pos <= size()) {
+        throw std::out_of_range("index out of bounds");
+    }
+
+    value_type v;
+    return v;
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(size_type pos) const {
+    if (pos <= size()) {
+        throw std::out_of_range("index out of bounds");
+    }
+
+    value_type v;
+    return v;
 }
 
 template <typename T, std::size_t N>
