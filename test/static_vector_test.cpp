@@ -98,8 +98,10 @@ template <typename T, std::size_t N>
 void assert_static_vector_values(static_vector<T, N> const& v, std::size_t count, T const& value) {
     assert_static_vector_size(v, count);
 
-    for (std::size_t pos = 0; pos < count; ++pos) {
+    typename static_vector<T, N>::const_pointer data_ptr = v.data();
+    for (std::size_t pos = 0; pos < count; ++pos, ++data_ptr) {
         EXPECT_EQ(value, v.at(pos));
+        EXPECT_EQ(value, *data_ptr);
     }
 }
 

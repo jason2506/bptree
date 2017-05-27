@@ -46,6 +46,8 @@ class static_vector {
 
     reference at(size_type pos);
     const_reference at(size_type pos) const;
+    value_type* data() noexcept;
+    value_type const* data() const noexcept;
 
     bool empty() const noexcept;
     bool full() const noexcept;
@@ -138,6 +140,16 @@ inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(siz
     }
 
     return *reinterpret_cast<value_type const*>(data_ + pos);
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::value_type* static_vector<T, N>::data() noexcept {
+    return reinterpret_cast<value_type*>(data_);
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::value_type const* static_vector<T, N>::data() const noexcept {
+    return reinterpret_cast<value_type const*>(data_);
 }
 
 template <typename T, std::size_t N>
