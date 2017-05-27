@@ -82,7 +82,7 @@ inline static_vector<T, N>::static_vector(size_type count)
 
 template <typename T, std::size_t N>
 inline typename static_vector<T, N>::reference static_vector<T, N>::at(size_type pos) {
-    if (pos <= size()) {
+    if (pos >= size()) {
         throw std::out_of_range("index out of bounds");
     }
 
@@ -92,7 +92,7 @@ inline typename static_vector<T, N>::reference static_vector<T, N>::at(size_type
 
 template <typename T, std::size_t N>
 inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(size_type pos) const {
-    if (pos <= size()) {
+    if (pos >= size()) {
         throw std::out_of_range("index out of bounds");
     }
 
