@@ -16,28 +16,58 @@
 
 using bptree::internal::static_vector;
 
+enum class constructed_with {
+    default_ctor,
+    copy_ctor,
+    move_ctor,
+    value_ctor
+};
+
 class custom_type {
  public:  // Public Method(s)
     custom_type()
-      : custom_type(0)
+      : custom_type(constructed_with::default_ctor, 0)
         { /* do nothing */ }
 
+    custom_type(custom_type const& other)
+      : custom_type(constructed_with::copy_ctor, other.val_)
+        { /* do nothing */ }
+
+    custom_type(custom_type&& other)
+      : custom_type(constructed_with::move_ctor, other.val_)
+        { other.val_ = 0; }
+
     explicit custom_type(int n)
-      : val_(n)
-        { ++num_instances_; }
+      : custom_type(constructed_with::value_ctor, n)
+        { /* do nothing */ }
 
     ~custom_type()
         { --num_instances_; }
 
+    custom_type& operator=(custom_type const& other)
+        { val_ = other.val_; return *this; }
+
+    custom_type& operator=(custom_type&& other)
+        { val_ = other.val_; other.val_ = 0; return *this; }
+
     int get() const
         { return val_; }
+
+    constructed_with ctor() const
+        { return ctor_; }
 
  public:  // Public Static Method(s)
     static std::size_t num_instances()
         { return num_instances_; }
 
+ private:  // Private Method(s)
+    custom_type(constructed_with ctor, int n)
+      : ctor_(ctor), val_(n)
+        { ++num_instances_; }
+
  private:  // Private Property(ies)
     int val_;
+    constructed_with ctor_;
 
  private:  // Private Static Property(ies)
     static std::size_t num_instances_;
@@ -75,5 +105,6 @@ TEST(StaticVectorTest, ConstructWithCount) {
     for (std::size_t pos = 0; pos < COUNT; ++pos) {
         custom_type& obj = v.at(pos);
         EXPECT_EQ(0, obj.get());
+        EXPECT_EQ(constructed_with::default_ctor, obj.ctor());
     }
 }
