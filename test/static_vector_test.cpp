@@ -58,3 +58,16 @@ TEST(StaticVectorTest, EmptyVector) {
     EXPECT_EQ(N, v.capacity());
     EXPECT_THROW(v.at(0), std::out_of_range);
 }
+
+TEST(StaticVectorTest, ConstructWithCount) {
+    static_vector<custom_type, N> v(3);
+
+    EXPECT_EQ(3, custom_type::num_instances());
+
+    EXPECT_FALSE(v.empty());
+    EXPECT_FALSE(v.full());
+    EXPECT_EQ(3, v.size());
+    EXPECT_EQ(N, v.max_size());
+    EXPECT_EQ(N, v.capacity());
+    EXPECT_THROW(v.at(3), std::out_of_range);
+}

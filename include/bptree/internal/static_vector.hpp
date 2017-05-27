@@ -11,7 +11,9 @@
 
 #include <cstddef>
 
+#include <memory>
 #include <stdexcept>
+#include <type_traits>
 
 namespace bptree {
 
@@ -33,7 +35,8 @@ class static_vector {
     using difference_type = std::ptrdiff_t;
 
  public:  // Public Method(s)
-    static_vector() noexcept;
+    static_vector();
+    explicit static_vector(size_type count);
 
     reference at(size_type pos);
     const_reference at(size_type pos) const;
@@ -46,6 +49,7 @@ class static_vector {
 
  private:  // Private Property(ies)
     size_type size_;
+    std::aligned_storage_t<sizeof(T), alignof(T)> data_[N];
 };
 
 /************************************************
@@ -53,9 +57,27 @@ class static_vector {
  ************************************************/
 
 template <typename T, std::size_t N>
-inline static_vector<T, N>::static_vector() noexcept
-  : size_(0) {
+inline static_vector<T, N>::static_vector()
+  : size_(0), data_() {
     // do nothing
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>::static_vector(size_type count)
+  : size_(count), data_() {
+    auto first = reinterpret_cast<value_type*>(data_);
+    auto last = first + size_;
+    auto current = first;
+    try {
+        for (; current != last; ++current) {
+            ::new(current) value_type;
+        }
+    } catch (...) {
+        for (; first != current; ++first) {
+            first->~value_type();
+        }
+        throw;
+    }
 }
 
 template <typename T, std::size_t N>
