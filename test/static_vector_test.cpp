@@ -6,6 +6,7 @@
  *  Distributed under MIT License
  ************************************************/
 
+#include <cassert>
 #include <cstddef>
 
 #include <array>
@@ -77,17 +78,24 @@ class custom_type {
 std::size_t custom_type::num_instances_ = 0;
 std::size_t const N = 10;
 
+template <typename T, std::size_t N>
+void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
+    assert(size <= N);
+
+    EXPECT_EQ(size == 0, v.empty());
+    EXPECT_EQ(size == N, v.full());
+    EXPECT_EQ(size, v.size());
+    EXPECT_EQ(N, v.max_size());
+    EXPECT_EQ(N, v.capacity());
+
+    EXPECT_THROW(v.at(size), std::out_of_range);
+}
+
 TEST(StaticVectorTest, EmptyVector) {
     static_vector<custom_type, N> v;
 
     EXPECT_EQ(0, custom_type::num_instances());
-
-    EXPECT_TRUE(v.empty());
-    EXPECT_FALSE(v.full());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(N, v.max_size());
-    EXPECT_EQ(N, v.capacity());
-    EXPECT_THROW(v.at(0), std::out_of_range);
+    assert_static_vector_size(v, 0);
 }
 
 TEST(StaticVectorTest, ConstructWithCount) {
@@ -95,13 +103,7 @@ TEST(StaticVectorTest, ConstructWithCount) {
     static_vector<custom_type, N> v(COUNT);
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-
-    EXPECT_FALSE(v.empty());
-    EXPECT_FALSE(v.full());
-    EXPECT_EQ(COUNT, v.size());
-    EXPECT_EQ(N, v.max_size());
-    EXPECT_EQ(N, v.capacity());
-    EXPECT_THROW(v.at(COUNT), std::out_of_range);
+    assert_static_vector_size(v, COUNT);
 
     for (std::size_t pos = 0; pos < COUNT; ++pos) {
         custom_type& obj = v.at(pos);
@@ -125,13 +127,7 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
     static_vector<custom_type, N> v(COUNT, custom_type(VALUE));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-
-    EXPECT_FALSE(v.empty());
-    EXPECT_FALSE(v.full());
-    EXPECT_EQ(COUNT, v.size());
-    EXPECT_EQ(N, v.max_size());
-    EXPECT_EQ(N, v.capacity());
-    EXPECT_THROW(v.at(COUNT), std::out_of_range);
+    assert_static_vector_size(v, COUNT);
 
     for (std::size_t pos = 0; pos < COUNT; ++pos) {
         custom_type& obj = v.at(pos);
@@ -152,13 +148,7 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
     static_vector<custom_type, N> v(arr.begin(), arr.end());
 
     EXPECT_EQ(arr.size() * 2, custom_type::num_instances());
-
-    EXPECT_FALSE(v.empty());
-    EXPECT_FALSE(v.full());
-    EXPECT_EQ(arr.size(), v.size());
-    EXPECT_EQ(N, v.max_size());
-    EXPECT_EQ(N, v.capacity());
-    EXPECT_THROW(v.at(arr.size()), std::out_of_range);
+    assert_static_vector_size(v, arr.size());
 
     for (std::size_t pos = 0; pos < arr.size(); ++pos) {
         custom_type& obj = v.at(pos);
