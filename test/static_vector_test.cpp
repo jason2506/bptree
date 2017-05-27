@@ -216,3 +216,18 @@ TEST(StaticVectorTest, ConstructWithAnotherVector) {
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v2, SIZE, get_expected_value);
 }
+
+TEST(StaticVectorTest, ClearValues) {
+    static_vector<custom_type, SIZE_VECTOR> v = {
+        custom_type(1),
+        custom_type(2),
+        custom_type(3),
+        custom_type(5),
+        custom_type(8)
+    };
+
+    v.clear();
+
+    EXPECT_EQ(0, custom_type::num_instances());
+    assert_static_vector_size(v, 0);
+}

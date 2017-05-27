@@ -44,6 +44,8 @@ class static_vector {
     static_vector(static_vector const& other);
     ~static_vector();
 
+    void clear() noexcept;
+
     reference operator[](size_type pos);
     const_reference operator[](size_type pos) const;
     reference at(size_type pos);
@@ -121,6 +123,11 @@ inline static_vector<T, N>::static_vector(static_vector const& other)
 
 template <typename T, std::size_t N>
 inline static_vector<T, N>::~static_vector() {
+    clear();
+}
+
+template <typename T, std::size_t N>
+inline void static_vector<T, N>::clear() noexcept {
     for (size_type pos = 0; pos < size(); ++pos) {
         at(pos).~value_type();
     }
