@@ -73,7 +73,7 @@ inline static_vector<T, N>::static_vector()
 template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(size_type count)
   : size_(count), data_() {
-    auto first = reinterpret_cast<value_type*>(data_);
+    auto first = data();
     auto last = first + size_;
     auto current = first;
     try {
@@ -91,7 +91,7 @@ inline static_vector<T, N>::static_vector(size_type count)
 template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(size_type count, value_type const& value)
   : size_(count), data_() {
-    auto first = reinterpret_cast<value_type*>(data_);
+    auto first = data();
     auto last = first + size_;
     std::uninitialized_fill(first, last, value);
 }
@@ -100,7 +100,7 @@ template <typename T, std::size_t N>
 template <typename InputIt>
 inline static_vector<T, N>::static_vector(InputIt first, InputIt last)
   : static_vector() {
-    auto data_first = reinterpret_cast<value_type*>(data_);
+    auto data_first = data();
     auto data_last = std::uninitialized_copy(first, last, data_first);
     size_ = data_last - data_first;
 }
@@ -113,8 +113,7 @@ inline static_vector<T, N>::static_vector(std::initializer_list<value_type> il)
 
 template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(static_vector const& other)
-  : static_vector(reinterpret_cast<value_type const*>(other.data_),
-                  reinterpret_cast<value_type const*>(other.data_ + other.size())) {
+  : static_vector(other.data(), other.data() + other.size()) {
     // do nothing
 }
 
@@ -139,7 +138,7 @@ inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(siz
         throw std::out_of_range("index out of bounds");
     }
 
-    return *reinterpret_cast<value_type const*>(data_ + pos);
+    return *(data() + pos);
 }
 
 template <typename T, std::size_t N>
