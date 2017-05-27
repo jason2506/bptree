@@ -169,3 +169,23 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
         EXPECT_EQ(expected, v.at(pos));
     }
 }
+
+TEST(StaticVectorTest, ConstructWithInitializerList) {
+    std::size_t const SIZE = 5;
+    static_vector<custom_type, SIZE_VECTOR> v = {
+        custom_type(1),
+        custom_type(2),
+        custom_type(3),
+        custom_type(5),
+        custom_type(8)
+    };
+
+    EXPECT_EQ(SIZE, custom_type::num_instances());
+    assert_static_vector_size(v, SIZE);
+
+    int expected_vals[] = {1, 2, 3, 5, 8};
+    for (std::size_t pos = 0; pos < SIZE; ++pos) {
+        auto expected = custom_type(constructed_with::copy_ctor, expected_vals[pos]);
+        EXPECT_EQ(expected, v.at(pos));
+    }
+}

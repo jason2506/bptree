@@ -40,6 +40,7 @@ class static_vector {
     static_vector(size_type count, value_type const& value);
     template <typename InputIt>
     static_vector(InputIt first, InputIt last);
+    static_vector(std::initializer_list<value_type> il);
     ~static_vector();
 
     reference at(size_type pos);
@@ -99,6 +100,12 @@ inline static_vector<T, N>::static_vector(InputIt first, InputIt last)
     auto data_first = reinterpret_cast<value_type*>(data_);
     auto data_last = std::uninitialized_copy(first, last, data_first);
     size_ = data_last - data_first;
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>::static_vector(std::initializer_list<value_type> il)
+  : static_vector(il.begin(), il.end()) {
+    // do nothing
 }
 
 template <typename T, std::size_t N>
