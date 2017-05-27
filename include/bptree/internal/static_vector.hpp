@@ -37,6 +37,7 @@ class static_vector {
  public:  // Public Method(s)
     static_vector();
     explicit static_vector(size_type count);
+    ~static_vector();
 
     reference at(size_type pos);
     const_reference at(size_type pos) const;
@@ -78,6 +79,15 @@ inline static_vector<T, N>::static_vector(size_type count)
         }
         throw;
     }
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>::~static_vector() {
+    for (size_type pos = 0; pos < size(); ++pos) {
+        at(pos).~value_type();
+    }
+
+    size_ = 0;
 }
 
 template <typename T, std::size_t N>

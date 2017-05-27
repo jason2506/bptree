@@ -108,3 +108,12 @@ TEST(StaticVectorTest, ConstructWithCount) {
         EXPECT_EQ(constructed_with::default_ctor, obj.ctor());
     }
 }
+
+TEST(StaticVectorTest, DestructValues) {
+    {
+        static_vector<custom_type, N> v(3);
+        EXPECT_EQ(3, custom_type::num_instances());
+    }
+
+    EXPECT_EQ(0, custom_type::num_instances());
+}
