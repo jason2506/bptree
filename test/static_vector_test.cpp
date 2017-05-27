@@ -173,12 +173,10 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
     static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
     EXPECT_EQ(arr.size() * 2, custom_type::num_instances());
-    assert_static_vector_size(v, arr.size());
 
-    for (std::size_t pos = 0; pos < arr.size(); ++pos) {
-        auto expected = custom_type(constructed_with::copy_ctor, arr[pos].get());
-        EXPECT_EQ(expected, v.at(pos));
-    }
+    auto get_expected_value = [&arr](std::size_t pos) -> custom_type
+        { return custom_type(constructed_with::copy_ctor, arr[pos].get()); };
+    assert_static_vector_values(v, arr.size(), get_expected_value);
 }
 
 TEST(StaticVectorTest, ConstructWithInitializerList) {
@@ -192,13 +190,11 @@ TEST(StaticVectorTest, ConstructWithInitializerList) {
     };
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
-    assert_static_vector_size(v, SIZE);
 
-    int expected_vals[] = {1, 2, 3, 5, 8};
-    for (std::size_t pos = 0; pos < SIZE; ++pos) {
-        auto expected = custom_type(constructed_with::copy_ctor, expected_vals[pos]);
-        EXPECT_EQ(expected, v.at(pos));
-    }
+    int expected_values[] = {1, 2, 3, 5, 8};
+    auto get_expected_value = [&expected_values](std::size_t pos) -> custom_type
+        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
+    assert_static_vector_values(v, SIZE, get_expected_value);
 }
 
 TEST(StaticVectorTest, ConstructWithAnotherVector) {
@@ -214,11 +210,9 @@ TEST(StaticVectorTest, ConstructWithAnotherVector) {
     static_vector<custom_type, SIZE_VECTOR> v2 = v1;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
-    assert_static_vector_size(v2, SIZE);
 
-    int expected_vals[] = {1, 2, 3, 5, 8};
-    for (std::size_t pos = 0; pos < SIZE; ++pos) {
-        auto expected = custom_type(constructed_with::copy_ctor, expected_vals[pos]);
-        EXPECT_EQ(expected, v2.at(pos));
-    }
+    int expected_values[] = {1, 2, 3, 5, 8};
+    auto get_expected_value = [&expected_values](std::size_t pos) -> custom_type
+        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
+    assert_static_vector_values(v2, SIZE, get_expected_value);
 }
