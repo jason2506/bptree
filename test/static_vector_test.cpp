@@ -76,7 +76,7 @@ class custom_type {
 };
 
 std::size_t custom_type::num_instances_ = 0;
-std::size_t const N = 10;
+std::size_t const SIZE_VECTOR = 10;
 
 template <typename T, std::size_t N>
 void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
@@ -92,7 +92,7 @@ void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
 }
 
 TEST(StaticVectorTest, EmptyVector) {
-    static_vector<custom_type, N> v;
+    static_vector<custom_type, SIZE_VECTOR> v;
 
     EXPECT_EQ(0, custom_type::num_instances());
     assert_static_vector_size(v, 0);
@@ -100,7 +100,7 @@ TEST(StaticVectorTest, EmptyVector) {
 
 TEST(StaticVectorTest, ConstructWithCount) {
     std::size_t const COUNT = 3;
-    static_vector<custom_type, N> v(COUNT);
+    static_vector<custom_type, SIZE_VECTOR> v(COUNT);
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
     assert_static_vector_size(v, COUNT);
@@ -114,7 +114,7 @@ TEST(StaticVectorTest, ConstructWithCount) {
 
 TEST(StaticVectorTest, DestructValues) {
     {
-        static_vector<custom_type, N> v(3);
+        static_vector<custom_type, SIZE_VECTOR> v(3);
         EXPECT_EQ(3, custom_type::num_instances());
     }
 
@@ -124,7 +124,7 @@ TEST(StaticVectorTest, DestructValues) {
 TEST(StaticVectorTest, ConstructWithCountAndValue) {
     std::size_t const COUNT = 3;
     int const VALUE = 10;
-    static_vector<custom_type, N> v(COUNT, custom_type(VALUE));
+    static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(VALUE));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
     assert_static_vector_size(v, COUNT);
@@ -145,7 +145,7 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
         custom_type(8)
     };
 
-    static_vector<custom_type, N> v(arr.begin(), arr.end());
+    static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
     EXPECT_EQ(arr.size() * 2, custom_type::num_instances());
     assert_static_vector_size(v, arr.size());
