@@ -8,6 +8,7 @@
 
 #include <cstddef>
 
+#include <array>
 #include <stdexcept>
 
 #include <gtest/gtest.h>
@@ -135,6 +136,33 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
     for (std::size_t pos = 0; pos < COUNT; ++pos) {
         custom_type& obj = v.at(pos);
         EXPECT_EQ(VALUE, obj.get());
+        EXPECT_EQ(constructed_with::copy_ctor, obj.ctor());
+    }
+}
+
+TEST(StaticVectorTest, ConstructWithIteratorPair) {
+    std::array<custom_type, 5> arr = {
+        custom_type(1),
+        custom_type(2),
+        custom_type(3),
+        custom_type(5),
+        custom_type(8)
+    };
+
+    static_vector<custom_type, N> v(arr.begin(), arr.end());
+
+    EXPECT_EQ(arr.size() * 2, custom_type::num_instances());
+
+    EXPECT_FALSE(v.empty());
+    EXPECT_FALSE(v.full());
+    EXPECT_EQ(arr.size(), v.size());
+    EXPECT_EQ(N, v.max_size());
+    EXPECT_EQ(N, v.capacity());
+    EXPECT_THROW(v.at(arr.size()), std::out_of_range);
+
+    for (std::size_t pos = 0; pos < arr.size(); ++pos) {
+        custom_type& obj = v.at(pos);
+        EXPECT_EQ(arr[pos].get(), obj.get());
         EXPECT_EQ(constructed_with::copy_ctor, obj.ctor());
     }
 }

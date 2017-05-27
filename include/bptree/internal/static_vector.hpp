@@ -38,6 +38,8 @@ class static_vector {
     static_vector();
     explicit static_vector(size_type count);
     static_vector(size_type count, value_type const& value);
+    template <typename InputIt>
+    static_vector(InputIt first, InputIt last);
     ~static_vector();
 
     reference at(size_type pos);
@@ -88,6 +90,15 @@ inline static_vector<T, N>::static_vector(size_type count, value_type const& val
     auto first = reinterpret_cast<value_type*>(data_);
     auto last = first + size_;
     std::uninitialized_fill(first, last, value);
+}
+
+template <typename T, std::size_t N>
+template <typename InputIt>
+inline static_vector<T, N>::static_vector(InputIt first, InputIt last)
+  : static_vector() {
+    auto data_first = reinterpret_cast<value_type*>(data_);
+    auto data_last = std::uninitialized_copy(first, last, data_first);
+    size_ = data_last - data_first;
 }
 
 template <typename T, std::size_t N>
