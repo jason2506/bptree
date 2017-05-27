@@ -117,3 +117,24 @@ TEST(StaticVectorTest, DestructValues) {
 
     EXPECT_EQ(0, custom_type::num_instances());
 }
+
+TEST(StaticVectorTest, ConstructWithCountAndValue) {
+    std::size_t const COUNT = 3;
+    int const VALUE = 10;
+    static_vector<custom_type, N> v(COUNT, custom_type(VALUE));
+
+    EXPECT_EQ(COUNT, custom_type::num_instances());
+
+    EXPECT_FALSE(v.empty());
+    EXPECT_FALSE(v.full());
+    EXPECT_EQ(COUNT, v.size());
+    EXPECT_EQ(N, v.max_size());
+    EXPECT_EQ(N, v.capacity());
+    EXPECT_THROW(v.at(COUNT), std::out_of_range);
+
+    for (std::size_t pos = 0; pos < COUNT; ++pos) {
+        custom_type& obj = v.at(pos);
+        EXPECT_EQ(VALUE, obj.get());
+        EXPECT_EQ(constructed_with::copy_ctor, obj.ctor());
+    }
+}

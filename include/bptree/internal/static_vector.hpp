@@ -37,6 +37,7 @@ class static_vector {
  public:  // Public Method(s)
     static_vector();
     explicit static_vector(size_type count);
+    static_vector(size_type count, value_type const& value);
     ~static_vector();
 
     reference at(size_type pos);
@@ -79,6 +80,14 @@ inline static_vector<T, N>::static_vector(size_type count)
         }
         throw;
     }
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>::static_vector(size_type count, value_type const& value)
+  : size_(count), data_() {
+    auto first = reinterpret_cast<value_type*>(data_);
+    auto last = first + size_;
+    std::uninitialized_fill(first, last, value);
 }
 
 template <typename T, std::size_t N>
