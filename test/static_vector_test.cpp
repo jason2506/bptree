@@ -94,10 +94,20 @@ void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
     EXPECT_THROW(v.at(size), std::out_of_range);
 }
 
+template <typename T, std::size_t N>
+void assert_static_vector_values(static_vector<T, N> const& v, std::size_t count, T const& value) {
+    assert_static_vector_size(v, count);
+
+    for (std::size_t pos = 0; pos < count; ++pos) {
+        EXPECT_EQ(value, v.at(pos));
+    }
+}
+
 TEST(StaticVectorTest, EmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v;
 
     EXPECT_EQ(0, custom_type::num_instances());
+
     assert_static_vector_size(v, 0);
 }
 
@@ -106,12 +116,9 @@ TEST(StaticVectorTest, ConstructWithCount) {
     static_vector<custom_type, SIZE_VECTOR> v(COUNT);
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-    assert_static_vector_size(v, COUNT);
 
     auto expected = custom_type(constructed_with::default_ctor, 0);
-    for (std::size_t pos = 0; pos < COUNT; ++pos) {
-        EXPECT_EQ(expected, v.at(pos));
-    }
+    assert_static_vector_values(v, COUNT, expected);
 }
 
 TEST(StaticVectorTest, DestructValues) {
@@ -129,12 +136,9 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
     static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(VALUE));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-    assert_static_vector_size(v, COUNT);
 
     auto expected = custom_type(constructed_with::copy_ctor, VALUE);
-    for (std::size_t pos = 0; pos < COUNT; ++pos) {
-        EXPECT_EQ(expected, v.at(pos));
-    }
+    assert_static_vector_values(v, COUNT, expected);
 }
 
 TEST(StaticVectorTest, ConstructWithIteratorPair) {
