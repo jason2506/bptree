@@ -123,8 +123,8 @@ TEST(StaticVectorTest, ConstructWithCount) {
     EXPECT_EQ(COUNT, custom_type::num_instances());
 
     auto expected_value = custom_type(constructed_with::default_ctor, 0);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> custom_type const &
-        { return expected_value; };
+    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
+        { return (expected_value); };
     assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
@@ -143,8 +143,8 @@ TEST(StaticVectorTest, ConstructFullVector) {
     EXPECT_EQ(SIZE_VECTOR, custom_type::num_instances());
 
     auto expected_value = custom_type(constructed_with::default_ctor, 0);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> custom_type const &
-        { return expected_value; };
+    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
+        { return (expected_value); };
     assert_static_vector_values(v, SIZE_VECTOR, get_expected_value);
 }
 
@@ -156,8 +156,8 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
     EXPECT_EQ(COUNT, custom_type::num_instances());
 
     auto expected_value = custom_type(constructed_with::copy_ctor, VALUE);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> custom_type const &
-        { return expected_value; };
+    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
+        { return (expected_value); };
     assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
@@ -174,7 +174,7 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
 
     EXPECT_EQ(arr.size() * 2, custom_type::num_instances());
 
-    auto get_expected_value = [&arr](std::size_t pos) -> custom_type
+    auto get_expected_value = [&arr](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, arr[pos].get()); };
     assert_static_vector_values(v, arr.size(), get_expected_value);
 }
@@ -192,7 +192,7 @@ TEST(StaticVectorTest, ConstructWithInitializerList) {
     EXPECT_EQ(SIZE, custom_type::num_instances());
 
     int expected_values[] = {1, 2, 3, 5, 8};
-    auto get_expected_value = [&expected_values](std::size_t pos) -> custom_type
+    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v, SIZE, get_expected_value);
 }
@@ -212,7 +212,7 @@ TEST(StaticVectorTest, ConstructWithAnotherVector) {
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
 
     int expected_values[] = {1, 2, 3, 5, 8};
-    auto get_expected_value = [&expected_values](std::size_t pos) -> custom_type
+    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v2, SIZE, get_expected_value);
 }
