@@ -86,8 +86,7 @@ inline typename static_vector<T, N>::reference static_vector<T, N>::at(size_type
         throw std::out_of_range("index out of bounds");
     }
 
-    value_type v;
-    return v;
+    return *reinterpret_cast<value_type*>(data_ + pos);
 }
 
 template <typename T, std::size_t N>
@@ -96,8 +95,7 @@ inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(siz
         throw std::out_of_range("index out of bounds");
     }
 
-    value_type v;
-    return v;
+    return *reinterpret_cast<value_type const*>(data_ + pos);
 }
 
 template <typename T, std::size_t N>

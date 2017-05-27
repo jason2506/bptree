@@ -60,14 +60,20 @@ TEST(StaticVectorTest, EmptyVector) {
 }
 
 TEST(StaticVectorTest, ConstructWithCount) {
-    static_vector<custom_type, N> v(3);
+    std::size_t const COUNT = 3;
+    static_vector<custom_type, N> v(COUNT);
 
-    EXPECT_EQ(3, custom_type::num_instances());
+    EXPECT_EQ(COUNT, custom_type::num_instances());
 
     EXPECT_FALSE(v.empty());
     EXPECT_FALSE(v.full());
-    EXPECT_EQ(3, v.size());
+    EXPECT_EQ(COUNT, v.size());
     EXPECT_EQ(N, v.max_size());
     EXPECT_EQ(N, v.capacity());
-    EXPECT_THROW(v.at(3), std::out_of_range);
+    EXPECT_THROW(v.at(COUNT), std::out_of_range);
+
+    for (std::size_t pos = 0; pos < COUNT; ++pos) {
+        custom_type& obj = v.at(pos);
+        EXPECT_EQ(0, obj.get());
+    }
 }
