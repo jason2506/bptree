@@ -44,6 +44,8 @@ class static_vector {
     static_vector(static_vector const& other);
     ~static_vector();
 
+    reference operator[](size_type pos);
+    const_reference operator[](size_type pos) const;
     reference at(size_type pos);
     const_reference at(size_type pos) const;
     value_type* data() noexcept;
@@ -127,6 +129,18 @@ inline static_vector<T, N>::~static_vector() {
 }
 
 template <typename T, std::size_t N>
+inline typename static_vector<T, N>::reference
+static_vector<T, N>::operator[](size_type pos) {
+    return *(data() + pos);
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reference
+static_vector<T, N>::operator[](size_type pos) const {
+    return *(data() + pos);
+}
+
+template <typename T, std::size_t N>
 inline typename static_vector<T, N>::reference static_vector<T, N>::at(size_type pos) {
     return const_cast<reference>(
         static_cast<static_vector const*>(this)->at(pos));
@@ -138,7 +152,7 @@ inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(siz
         throw std::out_of_range("index out of bounds");
     }
 
-    return *(data() + pos);
+    return operator[](pos);
 }
 
 template <typename T, std::size_t N>
