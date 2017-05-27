@@ -43,6 +43,11 @@ class custom_type {
       : custom_type(constructed_with::value_ctor, n)
         { /* do nothing */ }
 
+    // used only for generating expected results in tests
+    custom_type(constructed_with ctor, int n)
+      : ctor_(ctor), val_(n)
+        { ++num_instances_; }
+
     ~custom_type()
         { --num_instances_; }
 
@@ -51,6 +56,9 @@ class custom_type {
 
     custom_type& operator=(custom_type&& other)
         { val_ = other.val_; other.val_ = 0; return *this; }
+
+    bool operator==(custom_type const& other) const
+        { return val_ == other.val_ && ctor_ == other.ctor_; }
 
     int get() const
         { return val_; }
@@ -61,11 +69,6 @@ class custom_type {
  public:  // Public Static Method(s)
     static std::size_t num_instances()
         { return num_instances_; }
-
- private:  // Private Method(s)
-    custom_type(constructed_with ctor, int n)
-      : ctor_(ctor), val_(n)
-        { ++num_instances_; }
 
  private:  // Private Property(ies)
     int val_;
@@ -105,10 +108,9 @@ TEST(StaticVectorTest, ConstructWithCount) {
     EXPECT_EQ(COUNT, custom_type::num_instances());
     assert_static_vector_size(v, COUNT);
 
+    auto expected = custom_type(constructed_with::default_ctor, 0);
     for (std::size_t pos = 0; pos < COUNT; ++pos) {
-        custom_type& obj = v.at(pos);
-        EXPECT_EQ(0, obj.get());
-        EXPECT_EQ(constructed_with::default_ctor, obj.ctor());
+        EXPECT_EQ(expected, v.at(pos));
     }
 }
 
@@ -129,10 +131,9 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
     EXPECT_EQ(COUNT, custom_type::num_instances());
     assert_static_vector_size(v, COUNT);
 
+    auto expected = custom_type(constructed_with::copy_ctor, VALUE);
     for (std::size_t pos = 0; pos < COUNT; ++pos) {
-        custom_type& obj = v.at(pos);
-        EXPECT_EQ(VALUE, obj.get());
-        EXPECT_EQ(constructed_with::copy_ctor, obj.ctor());
+        EXPECT_EQ(expected, v.at(pos));
     }
 }
 
@@ -151,8 +152,7 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
     assert_static_vector_size(v, arr.size());
 
     for (std::size_t pos = 0; pos < arr.size(); ++pos) {
-        custom_type& obj = v.at(pos);
-        EXPECT_EQ(arr[pos].get(), obj.get());
-        EXPECT_EQ(constructed_with::copy_ctor, obj.ctor());
+        auto expected = custom_type(constructed_with::copy_ctor, arr[pos].get());
+        EXPECT_EQ(expected, v.at(pos));
     }
 }
