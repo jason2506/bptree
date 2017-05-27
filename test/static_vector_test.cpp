@@ -130,6 +130,15 @@ TEST(StaticVectorTest, DestructValues) {
     EXPECT_EQ(0, custom_type::num_instances());
 }
 
+TEST(StaticVectorTest, ConstructFullVector) {
+    static_vector<custom_type, SIZE_VECTOR> v(SIZE_VECTOR);
+
+    EXPECT_EQ(SIZE_VECTOR, custom_type::num_instances());
+
+    auto expected = custom_type(constructed_with::default_ctor, 0);
+    assert_static_vector_values(v, SIZE_VECTOR, expected);
+}
+
 TEST(StaticVectorTest, ConstructWithCountAndValue) {
     std::size_t const COUNT = 3;
     int const VALUE = 10;
