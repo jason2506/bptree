@@ -41,6 +41,7 @@ class static_vector {
     template <typename InputIt>
     static_vector(InputIt first, InputIt last);
     static_vector(std::initializer_list<value_type> il);
+    static_vector(static_vector const& other);
     ~static_vector();
 
     reference at(size_type pos);
@@ -105,6 +106,13 @@ inline static_vector<T, N>::static_vector(InputIt first, InputIt last)
 template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(std::initializer_list<value_type> il)
   : static_vector(il.begin(), il.end()) {
+    // do nothing
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>::static_vector(static_vector const& other)
+  : static_vector(reinterpret_cast<value_type const*>(other.data_),
+                  reinterpret_cast<value_type const*>(other.data_ + other.size())) {
     // do nothing
 }
 
