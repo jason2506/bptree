@@ -94,15 +94,17 @@ void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
     EXPECT_THROW(v.at(size), std::out_of_range);
 }
 
-template <typename T, std::size_t N>
-void assert_static_vector_values(static_vector<T, N> const& v, std::size_t count, T const& value) {
+template <typename T, std::size_t N, typename F>
+void assert_static_vector_values(static_vector<T, N> const& v, std::size_t count,
+                                 F get_expected_value) {
     assert_static_vector_size(v, count);
 
     typename static_vector<T, N>::const_pointer data_ptr = v.data();
     for (std::size_t pos = 0; pos < count; ++pos, ++data_ptr) {
-        EXPECT_EQ(value, v[pos]);
-        EXPECT_EQ(value, v.at(pos));
-        EXPECT_EQ(value, *data_ptr);
+        T const& expected = get_expected_value(pos);
+        EXPECT_EQ(expected, v[pos]);
+        EXPECT_EQ(expected, v.at(pos));
+        EXPECT_EQ(expected, *data_ptr);
     }
 }
 
@@ -120,8 +122,10 @@ TEST(StaticVectorTest, ConstructWithCount) {
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
 
-    auto expected = custom_type(constructed_with::default_ctor, 0);
-    assert_static_vector_values(v, COUNT, expected);
+    auto expected_value = custom_type(constructed_with::default_ctor, 0);
+    auto get_expected_value = [&expected_value](std::size_t pos) -> custom_type const &
+        { return expected_value; };
+    assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
 TEST(StaticVectorTest, DestructValues) {
@@ -138,8 +142,10 @@ TEST(StaticVectorTest, ConstructFullVector) {
 
     EXPECT_EQ(SIZE_VECTOR, custom_type::num_instances());
 
-    auto expected = custom_type(constructed_with::default_ctor, 0);
-    assert_static_vector_values(v, SIZE_VECTOR, expected);
+    auto expected_value = custom_type(constructed_with::default_ctor, 0);
+    auto get_expected_value = [&expected_value](std::size_t pos) -> custom_type const &
+        { return expected_value; };
+    assert_static_vector_values(v, SIZE_VECTOR, get_expected_value);
 }
 
 TEST(StaticVectorTest, ConstructWithCountAndValue) {
@@ -149,8 +155,10 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
 
-    auto expected = custom_type(constructed_with::copy_ctor, VALUE);
-    assert_static_vector_values(v, COUNT, expected);
+    auto expected_value = custom_type(constructed_with::copy_ctor, VALUE);
+    auto get_expected_value = [&expected_value](std::size_t pos) -> custom_type const &
+        { return expected_value; };
+    assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
 TEST(StaticVectorTest, ConstructWithIteratorPair) {
