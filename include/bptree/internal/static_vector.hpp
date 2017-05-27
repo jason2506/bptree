@@ -9,6 +9,7 @@
 #ifndef BPTREE_INTERNAL_STATIC_VECTOR_HPP_
 #define BPTREE_INTERNAL_STATIC_VECTOR_HPP_
 
+#include <cassert>
 #include <cstddef>
 
 #include <memory>
@@ -77,6 +78,8 @@ inline static_vector<T, N>::static_vector()
 template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(size_type count)
   : size_(count), data_() {
+    assert(count <= max_size());
+
     auto first = data();
     auto last = first + size_;
     auto current = first;
@@ -95,6 +98,8 @@ inline static_vector<T, N>::static_vector(size_type count)
 template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(size_type count, value_type const& value)
   : size_(count), data_() {
+    assert(count <= max_size());
+
     auto first = data();
     auto last = first + size_;
     std::uninitialized_fill(first, last, value);
@@ -107,6 +112,7 @@ inline static_vector<T, N>::static_vector(InputIt first, InputIt last)
     auto data_first = data();
     auto data_last = std::uninitialized_copy(first, last, data_first);
     size_ = data_last - data_first;
+    assert(size_ <= max_size());
 }
 
 template <typename T, std::size_t N>
@@ -138,12 +144,14 @@ inline void static_vector<T, N>::clear() noexcept {
 template <typename T, std::size_t N>
 inline typename static_vector<T, N>::reference
 static_vector<T, N>::operator[](size_type pos) {
+    assert(pos < size());
     return *(data() + pos);
 }
 
 template <typename T, std::size_t N>
 inline typename static_vector<T, N>::const_reference
 static_vector<T, N>::operator[](size_type pos) const {
+    assert(pos < size());
     return *(data() + pos);
 }
 
