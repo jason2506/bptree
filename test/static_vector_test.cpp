@@ -137,6 +137,14 @@ TEST(StaticVectorTest, DestructValues) {
     EXPECT_EQ(0, custom_type::num_instances());
 }
 
+TEST(StaticVectorTest, ConstructEmptyVector) {
+    static_vector<custom_type, SIZE_VECTOR> v(0);
+
+    EXPECT_EQ(0, custom_type::num_instances());
+
+    assert_static_vector_size(v, 0);
+}
+
 TEST(StaticVectorTest, ConstructFullVector) {
     static_vector<custom_type, SIZE_VECTOR> v(SIZE_VECTOR);
 
