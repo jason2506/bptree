@@ -94,30 +94,30 @@ std::size_t const SIZE_VECTOR = 10;
 #define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, n, ...) n
 #define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
-#define INIT_LIST_IMPL_1(wrap, value) wrap(value)
-#define INIT_LIST_IMPL_2(wrap, _1, value) \
-        INIT_LIST_IMPL_1(wrap, _1), wrap(value)
-#define INIT_LIST_IMPL_3(wrap, _1, _2, value) \
-        INIT_LIST_IMPL_2(wrap, _1, _2), wrap(value)
-#define INIT_LIST_IMPL_4(wrap, _1, _2, _3, value) \
-        INIT_LIST_IMPL_3(wrap, _1, _2, _3), wrap(value)
-#define INIT_LIST_IMPL_5(wrap, _1, _2, _3, _4, value) \
-        INIT_LIST_IMPL_4(wrap, _1, _2, _3, _4), wrap(value)
-#define INIT_LIST_IMPL_6(wrap, _1, _2, _3, _4, _5, value) \
-        INIT_LIST_IMPL_5(wrap, _1, _2, _3, _4, _5), wrap(value)
-#define INIT_LIST_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, value) \
-        INIT_LIST_IMPL_6(wrap, _1, _2, _3, _4, _5, _6), wrap(value)
-#define INIT_LIST_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, value) \
-        INIT_LIST_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, _7), wrap(value)
-#define INIT_LIST_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, value) \
-        INIT_LIST_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, _8), wrap(value)
-#define INIT_LIST_IMPL_10(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9, value) \
-        INIT_LIST_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9), wrap(value)
+#define WRAP_VALUES_IMPL_1(wrap, value) wrap(value)
+#define WRAP_VALUES_IMPL_2(wrap, _1, value) \
+        WRAP_VALUES_IMPL_1(wrap, _1), wrap(value)
+#define WRAP_VALUES_IMPL_3(wrap, _1, _2, value) \
+        WRAP_VALUES_IMPL_2(wrap, _1, _2), wrap(value)
+#define WRAP_VALUES_IMPL_4(wrap, _1, _2, _3, value) \
+        WRAP_VALUES_IMPL_3(wrap, _1, _2, _3), wrap(value)
+#define WRAP_VALUES_IMPL_5(wrap, _1, _2, _3, _4, value) \
+        WRAP_VALUES_IMPL_4(wrap, _1, _2, _3, _4), wrap(value)
+#define WRAP_VALUES_IMPL_6(wrap, _1, _2, _3, _4, _5, value) \
+        WRAP_VALUES_IMPL_5(wrap, _1, _2, _3, _4, _5), wrap(value)
+#define WRAP_VALUES_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, value) \
+        WRAP_VALUES_IMPL_6(wrap, _1, _2, _3, _4, _5, _6), wrap(value)
+#define WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, value) \
+        WRAP_VALUES_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, _7), wrap(value)
+#define WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, value) \
+        WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, _8), wrap(value)
+#define WRAP_VALUES_IMPL_10(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9, value) \
+        WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9), wrap(value)
 
-#define INIT_LIST_IMPL_N(n, wrap, ...)  INIT_LIST_IMPL_##n(wrap, __VA_ARGS__)
-#define INIT_LIST_IMPL(n, wrap, ...)    INIT_LIST_IMPL_N(n, wrap, __VA_ARGS__)
+#define WRAP_VALUES_IMPL_(n, wrap, ...) WRAP_VALUES_IMPL_##n(wrap, __VA_ARGS__)
+#define WRAP_VALUES_IMPL(n, wrap, ...)  WRAP_VALUES_IMPL_(n, wrap, __VA_ARGS__)
 
-#define INIT_LIST(wrap, ...)            { INIT_LIST_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__) }
+#define WRAP_VALUES(wrap, ...)          WRAP_VALUES_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__)
 
 #define TEST_VALUES                     1, 2, 3, 5, 8
 #define EXTRA_TEST_VALUES               13, 21, 34
@@ -203,7 +203,7 @@ TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
 
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
     std::size_t constexpr SIZE = VA_NARGS(TEST_VALUES);
-    std::array<custom_type, SIZE> arr = INIT_LIST(custom_type, TEST_VALUES);
+    std::array<custom_type, SIZE> arr = { WRAP_VALUES(custom_type, TEST_VALUES) };
 
     static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
@@ -216,7 +216,7 @@ TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
 
 TEST_F(StaticVectorTest, ConstructWithInitializerList) {
     std::size_t const SIZE = VA_NARGS(TEST_VALUES);
-    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
 
@@ -228,7 +228,7 @@ TEST_F(StaticVectorTest, ConstructWithInitializerList) {
 
 TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
     std::size_t const SIZE = VA_NARGS(TEST_VALUES);
-    static_vector<custom_type, SIZE_VECTOR> v1 = INIT_LIST(custom_type, TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v1 = { WRAP_VALUES(custom_type, TEST_VALUES) };
     static_vector<custom_type, SIZE_VECTOR> v2 = v1;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
@@ -249,7 +249,7 @@ TEST_F(StaticVectorTest, DestructValues) {
 }
 
 TEST_F(StaticVectorTest, ClearValues) {
-    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
 
     v.clear();
 
@@ -259,8 +259,8 @@ TEST_F(StaticVectorTest, ClearValues) {
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
     std::size_t const SIZE = VA_NARGS(EXTRA_TEST_VALUES);
-    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
-    v = INIT_LIST(custom_type, EXTRA_TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
 
@@ -272,8 +272,8 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
     std::size_t const SIZE = VA_NARGS(EXTRA_TEST_VALUES);
-    static_vector<custom_type, SIZE_VECTOR> v1 = INIT_LIST(custom_type, TEST_VALUES);
-    static_vector<custom_type, SIZE_VECTOR> v2 = INIT_LIST(custom_type, EXTRA_TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v1 = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    static_vector<custom_type, SIZE_VECTOR> v2 = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
     v1 = v2;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
@@ -287,7 +287,7 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
 TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
     std::size_t const COUNT = 3;
     int const VALUE = 10;
-    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
     v.assign(COUNT, custom_type(VALUE));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
