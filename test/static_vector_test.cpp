@@ -91,6 +91,37 @@ class StaticVectorTest : public ::testing::Test {
 std::size_t custom_type::num_instances_ = 0;
 std::size_t const SIZE_VECTOR = 10;
 
+#define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, n, ...) n
+#define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
+#define INIT_LIST_IMPL_1(wrap, value) wrap(value)
+#define INIT_LIST_IMPL_2(wrap, _1, value) \
+        INIT_LIST_IMPL_1(wrap, _1), wrap(value)
+#define INIT_LIST_IMPL_3(wrap, _1, _2, value) \
+        INIT_LIST_IMPL_2(wrap, _1, _2), wrap(value)
+#define INIT_LIST_IMPL_4(wrap, _1, _2, _3, value) \
+        INIT_LIST_IMPL_3(wrap, _1, _2, _3), wrap(value)
+#define INIT_LIST_IMPL_5(wrap, _1, _2, _3, _4, value) \
+        INIT_LIST_IMPL_4(wrap, _1, _2, _3, _4), wrap(value)
+#define INIT_LIST_IMPL_6(wrap, _1, _2, _3, _4, _5, value) \
+        INIT_LIST_IMPL_5(wrap, _1, _2, _3, _4, _5), wrap(value)
+#define INIT_LIST_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, value) \
+        INIT_LIST_IMPL_6(wrap, _1, _2, _3, _4, _5, _6), wrap(value)
+#define INIT_LIST_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, value) \
+        INIT_LIST_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, _7), wrap(value)
+#define INIT_LIST_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, value) \
+        INIT_LIST_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, _8), wrap(value)
+#define INIT_LIST_IMPL_10(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9, value) \
+        INIT_LIST_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9), wrap(value)
+
+#define INIT_LIST_IMPL_N(n, wrap, ...)  INIT_LIST_IMPL_##n(wrap, __VA_ARGS__)
+#define INIT_LIST_IMPL(n, wrap, ...)    INIT_LIST_IMPL_N(n, wrap, __VA_ARGS__)
+
+#define INIT_LIST(wrap, ...)            { INIT_LIST_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__) }
+
+#define TEST_VALUES                     1, 2, 3, 5, 8
+#define EXTRA_TEST_VALUES               13, 21, 34
+
 template <typename T, std::size_t N>
 void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
     assert(size <= N);
@@ -171,56 +202,38 @@ TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
 }
 
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
-    std::array<custom_type, 5> arr = {
-        custom_type(1),
-        custom_type(2),
-        custom_type(3),
-        custom_type(5),
-        custom_type(8)
-    };
+    std::size_t constexpr SIZE = VA_NARGS(TEST_VALUES);
+    std::array<custom_type, SIZE> arr = INIT_LIST(custom_type, TEST_VALUES);
 
     static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
-    EXPECT_EQ(arr.size() * 2, custom_type::num_instances());
+    EXPECT_EQ(SIZE * 2, custom_type::num_instances());
 
     auto get_expected_value = [&arr](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, arr[pos].get()); };
-    assert_static_vector_values(v, arr.size(), get_expected_value);
+    assert_static_vector_values(v, SIZE, get_expected_value);
 }
 
 TEST_F(StaticVectorTest, ConstructWithInitializerList) {
-    std::size_t const SIZE = 5;
-    static_vector<custom_type, SIZE_VECTOR> v = {
-        custom_type(1),
-        custom_type(2),
-        custom_type(3),
-        custom_type(5),
-        custom_type(8)
-    };
+    std::size_t const SIZE = VA_NARGS(TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
 
-    int expected_values[] = {1, 2, 3, 5, 8};
+    int expected_values[] = {TEST_VALUES};
     auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v, SIZE, get_expected_value);
 }
 
 TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
-    std::size_t const SIZE = 5;
-    static_vector<custom_type, SIZE_VECTOR> v1 = {
-        custom_type(1),
-        custom_type(2),
-        custom_type(3),
-        custom_type(5),
-        custom_type(8)
-    };
-
+    std::size_t const SIZE = VA_NARGS(TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v1 = INIT_LIST(custom_type, TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v2 = v1;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
 
-    int expected_values[] = {1, 2, 3, 5, 8};
+    int expected_values[] = {TEST_VALUES};
     auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v2, SIZE, get_expected_value);
@@ -236,13 +249,7 @@ TEST_F(StaticVectorTest, DestructValues) {
 }
 
 TEST_F(StaticVectorTest, ClearValues) {
-    static_vector<custom_type, SIZE_VECTOR> v = {
-        custom_type(1),
-        custom_type(2),
-        custom_type(3),
-        custom_type(5),
-        custom_type(8)
-    };
+    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
 
     v.clear();
 
@@ -251,50 +258,27 @@ TEST_F(StaticVectorTest, ClearValues) {
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
-    static_vector<custom_type, SIZE_VECTOR> v = {
-        custom_type(1),
-        custom_type(2),
-        custom_type(3),
-        custom_type(5),
-        custom_type(8)
-    };
-
-    std::size_t const SIZE = 3;
-    v = {
-        custom_type(13),
-        custom_type(21),
-        custom_type(34)
-    };
+    std::size_t const SIZE = VA_NARGS(EXTRA_TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
+    v = INIT_LIST(custom_type, EXTRA_TEST_VALUES);
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
 
-    int expected_values[] = {13, 21, 34};
+    int expected_values[] = {EXTRA_TEST_VALUES};
     auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v, SIZE, get_expected_value);
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
-    static_vector<custom_type, SIZE_VECTOR> v1 = {
-        custom_type(1),
-        custom_type(2),
-        custom_type(3),
-        custom_type(5),
-        custom_type(8)
-    };
-
-    std::size_t const SIZE = 3;
-    static_vector<custom_type, SIZE_VECTOR> v2 = {
-        custom_type(13),
-        custom_type(21),
-        custom_type(34)
-    };
-
+    std::size_t const SIZE = VA_NARGS(EXTRA_TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v1 = INIT_LIST(custom_type, TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v2 = INIT_LIST(custom_type, EXTRA_TEST_VALUES);
     v1 = v2;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
 
-    int expected_values[] = {13, 21, 34};
+    int expected_values[] = {EXTRA_TEST_VALUES};
     auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v1, SIZE, get_expected_value);
