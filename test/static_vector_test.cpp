@@ -239,3 +239,27 @@ TEST(StaticVectorTest, ClearValues) {
     EXPECT_EQ(0, custom_type::num_instances());
     assert_static_vector_size(v, 0);
 }
+
+TEST(StaticVectorTest, AssignWithOperatorAndInitializerList) {
+    static_vector<custom_type, SIZE_VECTOR> v = {
+        custom_type(1),
+        custom_type(2),
+        custom_type(3),
+        custom_type(5),
+        custom_type(8)
+    };
+
+    std::size_t const SIZE = 3;
+    v = {
+        custom_type(13),
+        custom_type(21),
+        custom_type(34)
+    };
+
+    EXPECT_EQ(SIZE, custom_type::num_instances());
+
+    int expected_values[] = {13, 21, 34};
+    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
+        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
+    assert_static_vector_values(v, SIZE, get_expected_value);
+}
