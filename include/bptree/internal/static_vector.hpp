@@ -47,6 +47,7 @@ class static_vector {
 
     static_vector& operator=(std::initializer_list<value_type> il);
     static_vector& operator=(static_vector const& other);
+    void assign(size_type count, value_type const& value);
     void clear() noexcept;
 
     reference operator[](size_type pos);
@@ -153,6 +154,18 @@ inline static_vector<T, N>& static_vector<T, N>::operator=(static_vector const& 
     size_ = other.size();
     std::uninitialized_copy(first, last, data());
     return *this;
+}
+
+template <typename T, std::size_t N>
+inline void static_vector<T, N>::assign(size_type count, value_type const& value) {
+    assert(count <= max_size());
+
+    clear();
+
+    auto first = data();
+    auto last = first + count;
+    size_ = count;
+    std::uninitialized_fill(first, last, value);
 }
 
 template <typename T, std::size_t N>

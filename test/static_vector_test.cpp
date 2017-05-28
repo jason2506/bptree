@@ -283,3 +283,17 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v1, SIZE, get_expected_value);
 }
+
+TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
+    std::size_t const COUNT = 3;
+    int const VALUE = 10;
+    static_vector<custom_type, SIZE_VECTOR> v = INIT_LIST(custom_type, TEST_VALUES);
+    v.assign(COUNT, custom_type(VALUE));
+
+    EXPECT_EQ(COUNT, custom_type::num_instances());
+
+    auto expected_value = custom_type(constructed_with::copy_ctor, VALUE);
+    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
+        { return (expected_value); };
+    assert_static_vector_values(v, COUNT, get_expected_value);
+}
