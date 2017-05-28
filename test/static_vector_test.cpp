@@ -67,6 +67,9 @@ class custom_type {
         { return ctor_; }
 
  public:  // Public Static Method(s)
+    static void reset_num_instances()
+        { num_instances_ = 0; }
+
     static std::size_t num_instances()
         { return num_instances_; }
 
@@ -76,6 +79,13 @@ class custom_type {
 
  private:  // Private Static Property(ies)
     static std::size_t num_instances_;
+};
+
+class StaticVectorTest : public ::testing::Test {
+ protected:
+     virtual void SetUp() {
+         custom_type::reset_num_instances();
+     }
 };
 
 std::size_t custom_type::num_instances_ = 0;
@@ -108,7 +118,7 @@ void assert_static_vector_values(static_vector<T, N> const& v, std::size_t count
     }
 }
 
-TEST(StaticVectorTest, EmptyVector) {
+TEST_F(StaticVectorTest, EmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v;
 
     EXPECT_EQ(0, custom_type::num_instances());
@@ -116,7 +126,7 @@ TEST(StaticVectorTest, EmptyVector) {
     assert_static_vector_size(v, 0);
 }
 
-TEST(StaticVectorTest, ConstructWithCount) {
+TEST_F(StaticVectorTest, ConstructWithCount) {
     std::size_t const COUNT = 3;
     static_vector<custom_type, SIZE_VECTOR> v(COUNT);
 
@@ -128,7 +138,7 @@ TEST(StaticVectorTest, ConstructWithCount) {
     assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
-TEST(StaticVectorTest, DestructValues) {
+TEST_F(StaticVectorTest, DestructValues) {
     {
         static_vector<custom_type, SIZE_VECTOR> v(3);
         EXPECT_EQ(3, custom_type::num_instances());
@@ -137,7 +147,7 @@ TEST(StaticVectorTest, DestructValues) {
     EXPECT_EQ(0, custom_type::num_instances());
 }
 
-TEST(StaticVectorTest, ConstructEmptyVector) {
+TEST_F(StaticVectorTest, ConstructEmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v(0);
 
     EXPECT_EQ(0, custom_type::num_instances());
@@ -145,7 +155,7 @@ TEST(StaticVectorTest, ConstructEmptyVector) {
     assert_static_vector_size(v, 0);
 }
 
-TEST(StaticVectorTest, ConstructFullVector) {
+TEST_F(StaticVectorTest, ConstructFullVector) {
     static_vector<custom_type, SIZE_VECTOR> v(SIZE_VECTOR);
 
     EXPECT_EQ(SIZE_VECTOR, custom_type::num_instances());
@@ -156,7 +166,7 @@ TEST(StaticVectorTest, ConstructFullVector) {
     assert_static_vector_values(v, SIZE_VECTOR, get_expected_value);
 }
 
-TEST(StaticVectorTest, ConstructWithCountAndValue) {
+TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
     std::size_t const COUNT = 3;
     int const VALUE = 10;
     static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(VALUE));
@@ -169,7 +179,7 @@ TEST(StaticVectorTest, ConstructWithCountAndValue) {
     assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
-TEST(StaticVectorTest, ConstructWithIteratorPair) {
+TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
     std::array<custom_type, 5> arr = {
         custom_type(1),
         custom_type(2),
@@ -187,7 +197,7 @@ TEST(StaticVectorTest, ConstructWithIteratorPair) {
     assert_static_vector_values(v, arr.size(), get_expected_value);
 }
 
-TEST(StaticVectorTest, ConstructWithInitializerList) {
+TEST_F(StaticVectorTest, ConstructWithInitializerList) {
     std::size_t const SIZE = 5;
     static_vector<custom_type, SIZE_VECTOR> v = {
         custom_type(1),
@@ -205,7 +215,7 @@ TEST(StaticVectorTest, ConstructWithInitializerList) {
     assert_static_vector_values(v, SIZE, get_expected_value);
 }
 
-TEST(StaticVectorTest, ConstructWithAnotherVector) {
+TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
     std::size_t const SIZE = 5;
     static_vector<custom_type, SIZE_VECTOR> v1 = {
         custom_type(1),
@@ -225,7 +235,7 @@ TEST(StaticVectorTest, ConstructWithAnotherVector) {
     assert_static_vector_values(v2, SIZE, get_expected_value);
 }
 
-TEST(StaticVectorTest, ClearValues) {
+TEST_F(StaticVectorTest, ClearValues) {
     static_vector<custom_type, SIZE_VECTOR> v = {
         custom_type(1),
         custom_type(2),
@@ -240,7 +250,7 @@ TEST(StaticVectorTest, ClearValues) {
     assert_static_vector_size(v, 0);
 }
 
-TEST(StaticVectorTest, AssignWithOperatorAndInitializerList) {
+TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
     static_vector<custom_type, SIZE_VECTOR> v = {
         custom_type(1),
         custom_type(2),
@@ -264,7 +274,7 @@ TEST(StaticVectorTest, AssignWithOperatorAndInitializerList) {
     assert_static_vector_values(v, SIZE, get_expected_value);
 }
 
-TEST(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
+TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
     static_vector<custom_type, SIZE_VECTOR> v1 = {
         custom_type(1),
         custom_type(2),
