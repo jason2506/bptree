@@ -138,15 +138,6 @@ TEST_F(StaticVectorTest, ConstructWithCount) {
     assert_static_vector_values(v, COUNT, get_expected_value);
 }
 
-TEST_F(StaticVectorTest, DestructValues) {
-    {
-        static_vector<custom_type, SIZE_VECTOR> v(3);
-        EXPECT_EQ(3, custom_type::num_instances());
-    }
-
-    EXPECT_EQ(0, custom_type::num_instances());
-}
-
 TEST_F(StaticVectorTest, ConstructEmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v(0);
 
@@ -233,6 +224,15 @@ TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
     auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
         { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
     assert_static_vector_values(v2, SIZE, get_expected_value);
+}
+
+TEST_F(StaticVectorTest, DestructValues) {
+    {
+        static_vector<custom_type, SIZE_VECTOR> v(3);
+        EXPECT_EQ(3, custom_type::num_instances());
+    }
+
+    EXPECT_EQ(0, custom_type::num_instances());
 }
 
 TEST_F(StaticVectorTest, ClearValues) {
