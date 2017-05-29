@@ -522,6 +522,52 @@ TEST_F(StaticVectorTest, InsertMovedValueAtMiddle) {
     });
 }
 
+TEST_F(StaticVectorTest, InsertRepectedValueAtBegin) {
+#define COUNT 3
+    std::size_t const size = VA_NARGS(TEST_VALUES) + COUNT;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v.insert(v.begin(), COUNT, custom_type(pushed_value));
+
+    EXPECT_EQ(size, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, pushed_value)),
+        WRAP_VALUES(custom_type::construct_with_move_ctor, TEST_VALUES)
+    });
+#undef COUNT
+}
+
+TEST_F(StaticVectorTest, InsertRepectedValueAtEnd) {
+#define COUNT 3
+    std::size_t const size = VA_NARGS(TEST_VALUES) + COUNT;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v.insert(v.end(), COUNT, custom_type(pushed_value));
+
+    EXPECT_EQ(size, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES),
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, pushed_value))
+    });
+#undef COUNT
+}
+
+TEST_F(StaticVectorTest, InsertRepectedValueAtMiddle) {
+#define COUNT 3
+    std::size_t const size = VA_NARGS(TEST_VALUES) + COUNT;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v.insert(v.begin() + TEST_VALUES_INSERTED_POS, COUNT, custom_type(pushed_value));
+
+    EXPECT_EQ(size, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES_BEFORE_INSERTED_POS),
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, pushed_value)),
+        WRAP_VALUES(custom_type::construct_with_move_ctor, TEST_VALUES_AFTER_INSERTED_POS)
+    });
+#undef COUNT
+}
+
 TEST_F(StaticVectorTest, EmplaceValueAtBegin) {
     std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
     int const pushed_value = 99;
