@@ -140,22 +140,13 @@ inline static_vector<T, N>::~static_vector() {
 
 template <typename T, std::size_t N>
 inline static_vector<T, N>& static_vector<T, N>::operator=(std::initializer_list<value_type> il) {
-    clear();
-
-    auto ptr = std::uninitialized_copy(il.begin(), il.end(), data());
-    size_ = ptr - data();
-    assert(size_ <= max_size());
+    assign(il);
     return *this;
 }
 
 template <typename T, std::size_t N>
 inline static_vector<T, N>& static_vector<T, N>::operator=(static_vector const& other) {
-    clear();
-
-    auto first = other.data();
-    auto last = first + other.size();
-    size_ = other.size();
-    std::uninitialized_copy(first, last, data());
+    assign(other.data(), other.data() + other.size());
     return *this;
 }
 
@@ -173,11 +164,7 @@ inline void static_vector<T, N>::assign(size_type count, value_type const& value
 
 template <typename T, std::size_t N>
 inline void static_vector<T, N>::assign(std::initializer_list<value_type> il) {
-    clear();
-
-    auto ptr = std::uninitialized_copy(il.begin(), il.end(), data());
-    size_ = ptr - data();
-    assert(size_ <= max_size());
+    assign(il.begin(), il.end());
 }
 
 template <typename T, std::size_t N>
