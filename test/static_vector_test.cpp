@@ -413,3 +413,8 @@ TEST_F(StaticVectorTest, AccessFirstElement) {
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
     EXPECT_EQ(v[0], v.front());
 }
+
+TEST_F(StaticVectorTest, AccessLastElement) {
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    EXPECT_EQ(v[v.size() - 1], v.back());
+}
