@@ -21,6 +21,76 @@ namespace bptree {
 namespace internal {
 
 /************************************************
+ * Declaration: class static_vector_iterator<P>
+ ************************************************/
+
+template <typename Pointer>
+class static_vector_iterator {
+ public:  // Public Type(s)
+    using iterator_category = typename std::iterator_traits<Pointer>::iterator_category;
+    using value_type = typename std::iterator_traits<Pointer>::value_type;
+    using difference_type = typename std::iterator_traits<Pointer>::difference_type;
+    using pointer = typename std::iterator_traits<Pointer>::pointer;
+    using reference = typename std::iterator_traits<Pointer>::reference;
+
+ public:  // Public Method(s)
+    static_vector_iterator()
+      : ptr_(nullptr)
+        { /* do nothing */ }
+    explicit static_vector_iterator(pointer ptr)
+      : ptr_(ptr)
+        { /* do nothing */ }
+
+    reference operator*() const
+        { return *ptr_; }
+    pointer operator->() const
+        { return ptr_; }
+    reference operator[](difference_type n) const
+        { return ptr_[n]; }
+
+    static_vector_iterator& operator++()
+        { ++ptr_; return *this; }
+    static_vector_iterator& operator--()
+        { --ptr_; return *this; }
+    static_vector_iterator operator++(int) const
+        { static_vector_iterator it(*this); ++ptr_; return it; }
+    static_vector_iterator operator--(int) const
+        { static_vector_iterator it(*this); --ptr_; return it; }
+
+    static_vector_iterator& operator+=(difference_type n)
+        { ptr_ += n; return *this; }
+    static_vector_iterator& operator-=(difference_type n)
+        { ptr_ -= n; return *this; }
+
+    difference_type operator-(const static_vector_iterator& other) const
+        { return static_vector_iterator(ptr_ - other.ptr); }
+    static_vector_iterator operator+(difference_type n) const
+        { return static_vector_iterator(ptr_ + n); }
+    static_vector_iterator operator-(difference_type n) const
+        { return static_vector_iterator(ptr_ - n); }
+    friend static_vector_iterator operator+(difference_type n, static_vector_iterator const& other)
+        { return static_vector_iterator(n + other.ptr_); }
+    friend static_vector_iterator operator-(difference_type n, static_vector_iterator const& other)
+        { return static_vector_iterator(n - other.ptr_); }
+
+    bool operator==(static_vector_iterator const& other) const noexcept
+        { return ptr_ == other.ptr_; }
+    bool operator!=(static_vector_iterator const& other) const noexcept
+        { return ptr_ != other.ptr_; }
+    bool operator> (static_vector_iterator const& other) const noexcept
+        { return ptr_ >  other.ptr_; }
+    bool operator< (static_vector_iterator const& other) const noexcept
+        { return ptr_ <  other.ptr_; }
+    bool operator>=(static_vector_iterator const& other) const noexcept
+        { return ptr_ >= other.ptr_; }
+    bool operator<=(static_vector_iterator const& other) const noexcept
+        { return ptr_ <= other.ptr_; }
+
+ private:  // Private Property(ies)
+    pointer ptr_;
+};
+
+/************************************************
  * Declaration: class static_vector<T, N>
  ************************************************/
 
@@ -34,6 +104,9 @@ class static_vector {
     using const_pointer = value_type const*;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
+
+    using iterator = static_vector_iterator<pointer>;
+    using const_iterator = static_vector_iterator<const_pointer>;
 
  public:  // Public Method(s)
     static_vector();
@@ -71,6 +144,13 @@ class static_vector {
     size_type size() const noexcept;
     constexpr size_type max_size() const noexcept;
     constexpr size_type capacity() const noexcept;
+
+    iterator begin() noexcept;
+    const_iterator begin() const noexcept;
+    const_iterator cbegin() const noexcept;
+    iterator end() noexcept;
+    const_iterator end() const noexcept;
+    const_iterator cend() const noexcept;
 
  private:  // Private Property(ies)
     size_type size_;
@@ -281,6 +361,42 @@ template <typename T, std::size_t N>
 inline constexpr typename static_vector<T, N>::size_type
 static_vector<T, N>::capacity() const noexcept {
     return max_size();
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::iterator
+static_vector<T, N>::begin() noexcept {
+    return iterator(data());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_iterator
+static_vector<T, N>::begin() const noexcept {
+    return cbegin();
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_iterator
+static_vector<T, N>::cbegin() const noexcept {
+    return const_iterator(data());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::iterator
+static_vector<T, N>::end() noexcept {
+    return iterator(data() + size());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_iterator
+static_vector<T, N>::end() const noexcept {
+    return cend();
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_iterator
+static_vector<T, N>::cend() const noexcept {
+    return const_iterator(data() + size());
 }
 
 }  // namespace internal

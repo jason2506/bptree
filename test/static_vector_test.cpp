@@ -164,12 +164,16 @@ void assert_static_vector_values(static_vector<T, N> const& v, T const (&expecte
     assert(size <= M);
     assert_static_vector_size(v, size);
 
+    typename static_vector<T, N>::const_iterator it = v.begin();
     typename static_vector<T, N>::const_pointer data_ptr = v.data();
-    for (std::size_t pos = 0; pos < size; ++pos, ++data_ptr) {
+    for (std::size_t pos = 0; pos < size; ++pos, ++it, ++data_ptr) {
         EXPECT_EQ(expected[pos], v[pos]);
         EXPECT_EQ(expected[pos], v.at(pos));
+        EXPECT_EQ(expected[pos], *it);
         EXPECT_EQ(expected[pos], *data_ptr);
     }
+
+    EXPECT_EQ(v.end(), it);
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {
