@@ -10,6 +10,7 @@
 #include <cstddef>
 
 #include <array>
+#include <sstream>
 #include <stdexcept>
 
 #include <gtest/gtest.h>
@@ -166,6 +167,10 @@ void assert_static_vector_values(static_vector<T, N> const& v, T const (&expecte
 
     typename static_vector<T, N>::const_pointer data_ptr = v.data();
     for (std::size_t pos = 0; pos < size; ++pos, ++data_ptr) {
+        std::ostringstream ss;
+        ss << "pos = " << pos;
+        SCOPED_TRACE(ss.str());
+
         EXPECT_EQ(expected[pos], v[pos]);
         EXPECT_EQ(expected[pos], v.at(pos));
         EXPECT_EQ(expected[pos], *data_ptr);
@@ -386,6 +391,10 @@ TEST_F(StaticVectorTest, TraverseWithIterator) {
     typename static_vector<custom_type, SIZE_VECTOR>::iterator it = v.begin();
     typename static_vector<custom_type, SIZE_VECTOR>::const_iterator cit = v.cbegin();
     for (std::size_t pos = 0; pos < size; ++pos, ++it, ++cit) {
+        std::ostringstream ss;
+        ss << "pos = " << pos;
+        SCOPED_TRACE(ss.str());
+
         EXPECT_EQ(v[pos], *it);
         EXPECT_EQ(v[pos], *cit);
     }
@@ -401,6 +410,10 @@ TEST_F(StaticVectorTest, TraverseWithReverseIterator) {
     typename static_vector<custom_type, SIZE_VECTOR>::reverse_iterator rit = v.rbegin();
     typename static_vector<custom_type, SIZE_VECTOR>::const_reverse_iterator crit = v.crbegin();
     for (std::size_t pos = size; pos > 0; --pos, ++rit, ++crit) {
+        std::ostringstream ss;
+        ss << "pos = " << pos;
+        SCOPED_TRACE(ss.str());
+
         EXPECT_EQ(v[pos - 1], *rit);
         EXPECT_EQ(v[pos - 1], *crit);
     }
