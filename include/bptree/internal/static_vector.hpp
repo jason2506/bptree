@@ -54,6 +54,8 @@ class static_vector {
 
     void push_back(value_type const& value);
     void push_back(value_type&& value);
+    template <typename... Args>
+    void emplace_back(Args&&... args);
     void clear() noexcept;
 
     reference operator[](size_type pos);
@@ -191,6 +193,14 @@ template <typename T, std::size_t N>
 inline void static_vector<T, N>::push_back(value_type&& value) {
     assert(size_ < max_size());
     ::new(data() + size_) value_type(std::move(value));
+    ++size_;
+}
+
+template <typename T, std::size_t N>
+template <typename... Args>
+inline void static_vector<T, N>::emplace_back(Args&&... args) {
+    assert(size_ < max_size());
+    ::new(data() + size_) value_type(std::forward<Args>(args)...);
     ++size_;
 }
 
