@@ -339,3 +339,16 @@ TEST_F(StaticVectorTest, PushBackCopiedValue) {
         custom_type(constructed_with::copy_ctor, pushed_value)
     });
 }
+
+TEST_F(StaticVectorTest, PushBackMovedValue) {
+    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v.push_back(custom_type(pushed_value));
+
+    EXPECT_EQ(size, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES),
+        custom_type(constructed_with::move_ctor, pushed_value)
+    });
+}
