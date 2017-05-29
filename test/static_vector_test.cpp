@@ -174,6 +174,13 @@ void assert_static_vector_values(static_vector<T, N> const& v, T const (&expecte
     }
 
     EXPECT_EQ(v.end(), it);
+
+    typename static_vector<T, N>::const_reverse_iterator rit = v.rbegin();
+    for (std::size_t pos = size; pos > 0; --pos, ++rit) {
+        EXPECT_EQ(expected[pos - 1], *rit);
+    }
+
+    EXPECT_EQ(v.rend(), rit);
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {

@@ -107,6 +107,8 @@ class static_vector {
 
     using iterator = static_vector_iterator<pointer>;
     using const_iterator = static_vector_iterator<const_pointer>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
  public:  // Public Method(s)
     static_vector();
@@ -151,6 +153,12 @@ class static_vector {
     iterator end() noexcept;
     const_iterator end() const noexcept;
     const_iterator cend() const noexcept;
+    reverse_iterator rbegin() noexcept;
+    const_reverse_iterator rbegin() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    reverse_iterator rend() noexcept;
+    const_reverse_iterator rend() const noexcept;
+    const_reverse_iterator crend() const noexcept;
 
  private:  // Private Property(ies)
     size_type size_;
@@ -397,6 +405,42 @@ template <typename T, std::size_t N>
 inline typename static_vector<T, N>::const_iterator
 static_vector<T, N>::cend() const noexcept {
     return const_iterator(data() + size());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::reverse_iterator
+static_vector<T, N>::rbegin() noexcept {
+    return reverse_iterator(end());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reverse_iterator
+static_vector<T, N>::rbegin() const noexcept {
+    return crbegin();
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reverse_iterator
+static_vector<T, N>::crbegin() const noexcept {
+    return const_reverse_iterator(end());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::reverse_iterator
+static_vector<T, N>::rend() noexcept {
+    return reverse_iterator(begin());
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reverse_iterator
+static_vector<T, N>::rend() const noexcept {
+    return crend();
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reverse_iterator
+static_vector<T, N>::crend() const noexcept {
+    return const_reverse_iterator(begin());
 }
 
 }  // namespace internal
