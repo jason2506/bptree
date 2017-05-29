@@ -136,6 +136,8 @@ class static_vector {
     void push_back(value_type const& value);
     void push_back(value_type&& value);
     template <typename... Args>
+    iterator emplace(const_iterator pos, Args&&... args);
+    template <typename... Args>
     void emplace_back(Args&&... args);
     void pop_back();
     void clear() noexcept;
@@ -333,6 +335,29 @@ inline void static_vector<T, N>::push_back(value_type const& value) {
 template <typename T, std::size_t N>
 inline void static_vector<T, N>::push_back(value_type&& value) {
     emplace_back(std::move(value));
+}
+
+template <typename T, std::size_t N>
+template <typename... Args>
+typename static_vector<T, N>::iterator
+static_vector<T, N>::emplace(const_iterator pos, Args&&... args) {
+    assert(pos >= cbegin());
+    assert(pos <= cend());
+    assert(!full());
+
+    auto offset = pos - cbegin();
+    auto ptr = data() + offset;
+    auto last = data() + size();
+    auto d_last = last + 1;
+    while (ptr != last) {
+        ::new(--d_last) value_type(std::move(*(--last)));
+        last->~value_type();
+    }
+
+    ::new(ptr) value_type(std::forward<Args>(args)...);
+    ++size_;
+
+    return iterator(ptr);
 }
 
 template <typename T, std::size_t N>
