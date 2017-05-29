@@ -301,3 +301,14 @@ TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
     });
 #undef COUNT
 }
+
+TEST_F(StaticVectorTest, AssignWithMethodAndInitializerList) {
+    std::size_t const size = VA_NARGS(EXTRA_TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v.assign({ WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) });
+
+    EXPECT_EQ(size, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, EXTRA_TEST_VALUES)
+    });
+}
