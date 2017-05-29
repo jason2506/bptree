@@ -159,11 +159,13 @@ void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
 }
 
 template <typename T, std::size_t N, std::size_t M>
-void assert_static_vector_values(static_vector<T, N> const& v, T const (&expected)[M]) {
-    assert_static_vector_size(v, M);
+void assert_static_vector_values(static_vector<T, N> const& v, T const (&expected)[M],
+                                 std::size_t size = M) {
+    assert(size <= M);
+    assert_static_vector_size(v, size);
 
     typename static_vector<T, N>::const_pointer data_ptr = v.data();
-    for (std::size_t pos = 0; pos < M; ++pos, ++data_ptr) {
+    for (std::size_t pos = 0; pos < size; ++pos, ++data_ptr) {
         EXPECT_EQ(expected[pos], v[pos]);
         EXPECT_EQ(expected[pos], v.at(pos));
         EXPECT_EQ(expected[pos], *data_ptr);
@@ -364,4 +366,15 @@ TEST_F(StaticVectorTest, EmplaceBackValue) {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES),
         custom_type(constructed_with::value_ctor, pushed_value)
     });
+}
+
+TEST_F(StaticVectorTest, PopBack) {
+    std::size_t const size = VA_NARGS(TEST_VALUES) - 1;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    v.pop_back();
+
+    EXPECT_EQ(size, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
+    }, size);
 }
