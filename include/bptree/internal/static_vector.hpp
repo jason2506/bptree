@@ -284,47 +284,15 @@ inline void static_vector<T, N>::assign(InputIt first, InputIt last) {
 }
 
 template <typename T, std::size_t N>
-typename static_vector<T, N>::iterator
+inline typename static_vector<T, N>::iterator
 static_vector<T, N>::insert(const_iterator pos, value_type const& value) {
-    assert(pos >= cbegin());
-    assert(pos <= cend());
-    assert(!full());
-
-    auto offset = pos - cbegin();
-    auto ptr = data() + offset;
-    auto last = data() + size();
-    auto d_last = last + 1;
-    while (ptr != last) {
-        ::new(--d_last) value_type(std::move(*(--last)));
-        last->~value_type();
-    }
-
-    ::new(ptr) value_type(value);
-    ++size_;
-
-    return iterator(ptr);
+    return emplace(pos, value);
 }
 
 template <typename T, std::size_t N>
-typename static_vector<T, N>::iterator
+inline typename static_vector<T, N>::iterator
 static_vector<T, N>::insert(const_iterator pos, value_type&& value) {
-    assert(pos >= cbegin());
-    assert(pos <= cend());
-    assert(!full());
-
-    auto offset = pos - cbegin();
-    auto ptr = data() + offset;
-    auto last = data() + size();
-    auto d_last = last + 1;
-    while (ptr != last) {
-        ::new(--d_last) value_type(std::move(*(--last)));
-        last->~value_type();
-    }
-
-    ::new(ptr) value_type(std::move(value));
-    ++size_;
-
-    return iterator(ptr);
+    return emplace(pos, std::move(value));
 }
 
 template <typename T, std::size_t N>
