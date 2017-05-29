@@ -181,7 +181,7 @@ inline static_vector<T, N>::static_vector(size_type count)
     assert(count <= max_size());
 
     auto first = data();
-    auto last = first + size_;
+    auto last = first + size();
     auto current = first;
     try {
         for (; current != last; ++current) {
@@ -201,7 +201,7 @@ inline static_vector<T, N>::static_vector(size_type count, value_type const& val
     assert(count <= max_size());
 
     auto first = data();
-    auto last = first + size_;
+    auto last = first + size();
     std::uninitialized_fill(first, last, value);
 }
 
@@ -212,7 +212,7 @@ inline static_vector<T, N>::static_vector(InputIt first, InputIt last)
     auto data_first = data();
     auto data_last = std::uninitialized_copy(first, last, data_first);
     size_ = data_last - data_first;
-    assert(size_ <= max_size());
+    assert(size() <= max_size());
 }
 
 template <typename T, std::size_t N>
@@ -268,7 +268,7 @@ inline void static_vector<T, N>::assign(InputIt first, InputIt last) {
 
     auto ptr = std::uninitialized_copy(first, last, data());
     size_ = ptr - data();
-    assert(size_ <= max_size());
+    assert(size() <= max_size());
 }
 
 template <typename T, std::size_t N>
@@ -284,15 +284,15 @@ inline void static_vector<T, N>::push_back(value_type&& value) {
 template <typename T, std::size_t N>
 template <typename... Args>
 inline void static_vector<T, N>::emplace_back(Args&&... args) {
-    assert(size_ < max_size());
-    ::new(data() + size_) value_type(std::forward<Args>(args)...);
+    assert(size() < max_size());
+    ::new(data() + size()) value_type(std::forward<Args>(args)...);
     ++size_;
 }
 
 template <typename T, std::size_t N>
 inline void static_vector<T, N>::pop_back() {
     assert(size() > 0);
-    at(size_ - 1).~value_type();
+    at(size() - 1).~value_type();
     --size_;
 }
 
