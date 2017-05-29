@@ -164,23 +164,12 @@ void assert_static_vector_values(static_vector<T, N> const& v, T const (&expecte
     assert(size <= M);
     assert_static_vector_size(v, size);
 
-    typename static_vector<T, N>::const_iterator it = v.begin();
     typename static_vector<T, N>::const_pointer data_ptr = v.data();
-    for (std::size_t pos = 0; pos < size; ++pos, ++it, ++data_ptr) {
+    for (std::size_t pos = 0; pos < size; ++pos, ++data_ptr) {
         EXPECT_EQ(expected[pos], v[pos]);
         EXPECT_EQ(expected[pos], v.at(pos));
-        EXPECT_EQ(expected[pos], *it);
         EXPECT_EQ(expected[pos], *data_ptr);
     }
-
-    EXPECT_EQ(v.end(), it);
-
-    typename static_vector<T, N>::const_reverse_iterator rit = v.rbegin();
-    for (std::size_t pos = size; pos > 0; --pos, ++rit) {
-        EXPECT_EQ(expected[pos - 1], *rit);
-    }
-
-    EXPECT_EQ(v.rend(), rit);
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {
@@ -388,4 +377,34 @@ TEST_F(StaticVectorTest, PopBack) {
     assert_static_vector_values(v, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
     }, size);
+}
+
+TEST_F(StaticVectorTest, TraverseWithIterator) {
+    std::size_t const size = VA_NARGS(TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+
+    typename static_vector<custom_type, SIZE_VECTOR>::iterator it = v.begin();
+    typename static_vector<custom_type, SIZE_VECTOR>::const_iterator cit = v.cbegin();
+    for (std::size_t pos = 0; pos < size; ++pos, ++it, ++cit) {
+        EXPECT_EQ(v[pos], *it);
+        EXPECT_EQ(v[pos], *cit);
+    }
+
+    EXPECT_EQ(v.end(), it);
+    EXPECT_EQ(v.cend(), cit);
+}
+
+TEST_F(StaticVectorTest, TraverseWithReverseIterator) {
+    std::size_t const size = VA_NARGS(TEST_VALUES);
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+
+    typename static_vector<custom_type, SIZE_VECTOR>::reverse_iterator rit = v.rbegin();
+    typename static_vector<custom_type, SIZE_VECTOR>::const_reverse_iterator crit = v.crbegin();
+    for (std::size_t pos = size; pos > 0; --pos, ++rit, ++crit) {
+        EXPECT_EQ(v[pos - 1], *rit);
+        EXPECT_EQ(v[pos - 1], *crit);
+    }
+
+    EXPECT_EQ(v.rend(), rit);
+    EXPECT_EQ(v.crend(), crit);
 }
