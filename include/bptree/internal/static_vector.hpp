@@ -184,16 +184,12 @@ inline void static_vector<T, N>::assign(InputIt first, InputIt last) {
 
 template <typename T, std::size_t N>
 inline void static_vector<T, N>::push_back(value_type const& value) {
-    assert(size_ < max_size());
-    ::new(data() + size_) value_type(value);
-    ++size_;
+    emplace_back(value);
 }
 
 template <typename T, std::size_t N>
 inline void static_vector<T, N>::push_back(value_type&& value) {
-    assert(size_ < max_size());
-    ::new(data() + size_) value_type(std::move(value));
-    ++size_;
+    emplace_back(std::move(value));
 }
 
 template <typename T, std::size_t N>
