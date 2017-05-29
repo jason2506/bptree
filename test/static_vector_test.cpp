@@ -408,3 +408,8 @@ TEST_F(StaticVectorTest, TraverseWithReverseIterator) {
     EXPECT_EQ(v.rend(), rit);
     EXPECT_EQ(v.crend(), crit);
 }
+
+TEST_F(StaticVectorTest, AccessFirstElement) {
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    EXPECT_EQ(v[0], v.front());
+}

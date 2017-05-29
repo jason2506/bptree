@@ -138,6 +138,8 @@ class static_vector {
     const_reference operator[](size_type pos) const;
     reference at(size_type pos);
     const_reference at(size_type pos) const;
+    reference front();
+    const_reference front() const;
     value_type* data() noexcept;
     value_type const* data() const noexcept;
 
@@ -332,6 +334,18 @@ inline typename static_vector<T, N>::const_reference static_vector<T, N>::at(siz
     }
 
     return operator[](pos);
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::reference static_vector<T, N>::front() {
+    assert(!empty());
+    return *begin();
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::const_reference static_vector<T, N>::front() const {
+    assert(!empty());
+    return *begin();
 }
 
 template <typename T, std::size_t N>
