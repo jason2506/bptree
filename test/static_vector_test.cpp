@@ -67,6 +67,18 @@ class custom_type {
         { return ctor_; }
 
  public:  // Public Static Method(s)
+    static custom_type construct_with_default_ctor(int val)
+        { return custom_type(constructed_with::default_ctor, val); }
+
+    static custom_type construct_with_copy_ctor(int val)
+        { return custom_type(constructed_with::copy_ctor, val); }
+
+    static custom_type construct_with_move_ctor(int val)
+        { return custom_type(constructed_with::move_ctor, val); }
+
+    static custom_type construct_with_value_ctor(int val)
+        { return custom_type(constructed_with::value_ctor, val); }
+
     static void reset_num_instances()
         { num_instances_ = 0; }
 
@@ -89,7 +101,6 @@ class StaticVectorTest : public ::testing::Test {
 };
 
 std::size_t custom_type::num_instances_ = 0;
-std::size_t const SIZE_VECTOR = 10;
 
 #define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, n, ...) n
 #define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
@@ -113,12 +124,24 @@ std::size_t const SIZE_VECTOR = 10;
         WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, _8), wrap(value)
 #define WRAP_VALUES_IMPL_10(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9, value) \
         WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9), wrap(value)
-
 #define WRAP_VALUES_IMPL_(n, wrap, ...) WRAP_VALUES_IMPL_##n(wrap, __VA_ARGS__)
 #define WRAP_VALUES_IMPL(n, wrap, ...)  WRAP_VALUES_IMPL_(n, wrap, __VA_ARGS__)
-
 #define WRAP_VALUES(wrap, ...)          WRAP_VALUES_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__)
 
+#define REPEAT_VALUE_IMPL_1(value)      value
+#define REPEAT_VALUE_IMPL_2(value)      REPEAT_VALUE_IMPL_1(value), value
+#define REPEAT_VALUE_IMPL_3(value)      REPEAT_VALUE_IMPL_2(value), value
+#define REPEAT_VALUE_IMPL_4(value)      REPEAT_VALUE_IMPL_3(value), value
+#define REPEAT_VALUE_IMPL_5(value)      REPEAT_VALUE_IMPL_4(value), value
+#define REPEAT_VALUE_IMPL_6(value)      REPEAT_VALUE_IMPL_5(value), value
+#define REPEAT_VALUE_IMPL_7(value)      REPEAT_VALUE_IMPL_6(value), value
+#define REPEAT_VALUE_IMPL_8(value)      REPEAT_VALUE_IMPL_7(value), value
+#define REPEAT_VALUE_IMPL_9(value)      REPEAT_VALUE_IMPL_8(value), value
+#define REPEAT_VALUE_IMPL_10(value)     REPEAT_VALUE_IMPL_9(value), value
+#define REPEAT_VALUE_IMPL(n, value)     REPEAT_VALUE_IMPL_##n(value)
+#define REPEAT_VALUE(n, value)          REPEAT_VALUE_IMPL(n, value)
+
+#define SIZE_VECTOR                     10
 #define TEST_VALUES                     1, 2, 3, 5, 8
 #define EXTRA_TEST_VALUES               13, 21, 34
 
@@ -135,17 +158,15 @@ void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
     EXPECT_THROW(v.at(size), std::out_of_range);
 }
 
-template <typename T, std::size_t N, typename F>
-void assert_static_vector_values(static_vector<T, N> const& v, std::size_t count,
-                                 F get_expected_value) {
-    assert_static_vector_size(v, count);
+template <typename T, std::size_t N, std::size_t M>
+void assert_static_vector_values(static_vector<T, N> const& v, T const (&expected)[M]) {
+    assert_static_vector_size(v, M);
 
     typename static_vector<T, N>::const_pointer data_ptr = v.data();
-    for (std::size_t pos = 0; pos < count; ++pos, ++data_ptr) {
-        T const& expected = get_expected_value(pos);
-        EXPECT_EQ(expected, v[pos]);
-        EXPECT_EQ(expected, v.at(pos));
-        EXPECT_EQ(expected, *data_ptr);
+    for (std::size_t pos = 0; pos < M; ++pos, ++data_ptr) {
+        EXPECT_EQ(expected[pos], v[pos]);
+        EXPECT_EQ(expected[pos], v.at(pos));
+        EXPECT_EQ(expected[pos], *data_ptr);
     }
 }
 
@@ -153,27 +174,24 @@ TEST_F(StaticVectorTest, EmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v;
 
     EXPECT_EQ(0, custom_type::num_instances());
-
     assert_static_vector_size(v, 0);
 }
 
 TEST_F(StaticVectorTest, ConstructWithCount) {
-    std::size_t const COUNT = 3;
+#define COUNT 3
     static_vector<custom_type, SIZE_VECTOR> v(COUNT);
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-
-    auto expected_value = custom_type(constructed_with::default_ctor, 0);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
-        { return (expected_value); };
-    assert_static_vector_values(v, COUNT, get_expected_value);
+    assert_static_vector_values(v, {
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::default_ctor, 0))
+    });
+#undef COUNT
 }
 
 TEST_F(StaticVectorTest, ConstructEmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v(0);
 
     EXPECT_EQ(0, custom_type::num_instances());
-
     assert_static_vector_size(v, 0);
 }
 
@@ -181,24 +199,21 @@ TEST_F(StaticVectorTest, ConstructFullVector) {
     static_vector<custom_type, SIZE_VECTOR> v(SIZE_VECTOR);
 
     EXPECT_EQ(SIZE_VECTOR, custom_type::num_instances());
-
-    auto expected_value = custom_type(constructed_with::default_ctor, 0);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
-        { return (expected_value); };
-    assert_static_vector_values(v, SIZE_VECTOR, get_expected_value);
+    assert_static_vector_values(v, {
+        REPEAT_VALUE(SIZE_VECTOR, custom_type(constructed_with::default_ctor, 0))
+    });
 }
 
 TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
-    std::size_t const COUNT = 3;
+#define COUNT 3
     int const VALUE = 10;
     static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(VALUE));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-
-    auto expected_value = custom_type(constructed_with::copy_ctor, VALUE);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
-        { return (expected_value); };
-    assert_static_vector_values(v, COUNT, get_expected_value);
+    assert_static_vector_values(v, {
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, VALUE))
+    });
+#undef COUNT
 }
 
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
@@ -208,10 +223,9 @@ TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
     static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
-
-    auto get_expected_value = [&arr](std::size_t pos) -> decltype(auto)
-        { return custom_type(constructed_with::copy_ctor, arr[pos].get()); };
-    assert_static_vector_values(v, SIZE, get_expected_value);
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
+    });
 }
 
 TEST_F(StaticVectorTest, ConstructWithInitializerList) {
@@ -219,11 +233,9 @@ TEST_F(StaticVectorTest, ConstructWithInitializerList) {
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
-
-    int expected_values[] = {TEST_VALUES};
-    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
-        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
-    assert_static_vector_values(v, SIZE, get_expected_value);
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
+    });
 }
 
 TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
@@ -232,11 +244,9 @@ TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
     static_vector<custom_type, SIZE_VECTOR> v2 = v1;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
-
-    int expected_values[] = {TEST_VALUES};
-    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
-        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
-    assert_static_vector_values(v2, SIZE, get_expected_value);
+    assert_static_vector_values(v2, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
+    });
 }
 
 TEST_F(StaticVectorTest, DestructValues) {
@@ -263,11 +273,9 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
     v = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
 
     EXPECT_EQ(SIZE, custom_type::num_instances());
-
-    int expected_values[] = {EXTRA_TEST_VALUES};
-    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
-        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
-    assert_static_vector_values(v, SIZE, get_expected_value);
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, EXTRA_TEST_VALUES)
+    });
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
@@ -277,23 +285,20 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
     v1 = v2;
 
     EXPECT_EQ(SIZE * 2, custom_type::num_instances());
-
-    int expected_values[] = {EXTRA_TEST_VALUES};
-    auto get_expected_value = [&expected_values](std::size_t pos) -> decltype(auto)
-        { return custom_type(constructed_with::copy_ctor, expected_values[pos]); };
-    assert_static_vector_values(v1, SIZE, get_expected_value);
+    assert_static_vector_values(v2, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, EXTRA_TEST_VALUES)
+    });
 }
 
 TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
-    std::size_t const COUNT = 3;
+#define COUNT 3
     int const VALUE = 10;
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
     v.assign(COUNT, custom_type(VALUE));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
-
-    auto expected_value = custom_type(constructed_with::copy_ctor, VALUE);
-    auto get_expected_value = [&expected_value](std::size_t pos) -> decltype(auto)
-        { return (expected_value); };
-    assert_static_vector_values(v, COUNT, get_expected_value);
+    assert_static_vector_values(v, {
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, VALUE))
+    });
+#undef COUNT
 }
