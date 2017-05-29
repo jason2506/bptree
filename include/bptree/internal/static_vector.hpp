@@ -86,6 +86,10 @@ class static_vector_iterator {
     bool operator<=(static_vector_iterator const& other) const noexcept
         { return ptr_ <= other.ptr_; }
 
+    template <typename AnotherPointer>
+    operator static_vector_iterator<AnotherPointer>() const noexcept
+        { return static_vector_iterator<AnotherPointer>(ptr_); }
+
  private:  // Private Property(ies)
     pointer ptr_;
 };
