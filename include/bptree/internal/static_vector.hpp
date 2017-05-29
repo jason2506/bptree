@@ -51,6 +51,8 @@ class static_vector {
     void assign(std::initializer_list<value_type> il);
     template <typename InputIt>
     void assign(InputIt first, InputIt last);
+
+    void push_back(value_type const& value);
     void clear() noexcept;
 
     reference operator[](size_type pos);
@@ -175,6 +177,13 @@ inline void static_vector<T, N>::assign(InputIt first, InputIt last) {
     auto ptr = std::uninitialized_copy(first, last, data());
     size_ = ptr - data();
     assert(size_ <= max_size());
+}
+
+template <typename T, std::size_t N>
+inline void static_vector<T, N>::push_back(value_type const& value) {
+    assert(size_ < max_size());
+    ::new(data() + size_) value_type(value);
+    ++size_;
 }
 
 template <typename T, std::size_t N>
