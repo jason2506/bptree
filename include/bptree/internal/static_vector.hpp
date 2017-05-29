@@ -62,8 +62,8 @@ class static_vector_iterator {
     static_vector_iterator& operator-=(difference_type n)
         { ptr_ -= n; return *this; }
 
-    difference_type operator-(const static_vector_iterator& other) const
-        { return static_vector_iterator(ptr_ - other.ptr); }
+    difference_type operator-(static_vector_iterator const& other) const
+        { return ptr_ - other.ptr_; }
     static_vector_iterator operator+(difference_type n) const
         { return static_vector_iterator(ptr_ + n); }
     static_vector_iterator operator-(difference_type n) const
