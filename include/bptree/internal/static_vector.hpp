@@ -131,6 +131,7 @@ class static_vector {
     template <typename InputIt>
     void assign(InputIt first, InputIt last);
 
+    iterator insert(const_iterator pos, value_type const& value);
     void push_back(value_type const& value);
     void push_back(value_type&& value);
     template <typename... Args>
@@ -277,6 +278,28 @@ inline void static_vector<T, N>::assign(InputIt first, InputIt last) {
     auto ptr = std::uninitialized_copy(first, last, data());
     size_ = ptr - data();
     assert(size() <= max_size());
+}
+
+template <typename T, std::size_t N>
+typename static_vector<T, N>::iterator
+static_vector<T, N>::insert(const_iterator pos, value_type const& value) {
+    assert(pos >= cbegin());
+    assert(pos <= cend());
+    assert(!full());
+
+    auto offset = pos - cbegin();
+    auto ptr = data() + offset;
+    auto last = data() + size();
+    auto d_last = last + 1;
+    while (ptr != last) {
+        ::new(--d_last) value_type(std::move(*(--last)));
+        last->~value_type();
+    }
+
+    ::new(ptr) value_type(value);
+    ++size_;
+
+    return iterator(ptr);
 }
 
 template <typename T, std::size_t N>

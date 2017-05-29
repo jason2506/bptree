@@ -143,7 +143,11 @@ std::size_t custom_type::num_instances_ = 0;
 #define REPEAT_VALUE(n, value)          REPEAT_VALUE_IMPL(n, value)
 
 #define SIZE_VECTOR                     10
-#define TEST_VALUES                     1, 2, 3, 5, 8
+#define TEST_VALUES_BEFORE_INSERTED_POS 1, 2, 3
+#define TEST_VALUES_AFTER_INSERTED_POS  5, 8
+#define TEST_VALUES_INSERTED_POS        VA_NARGS(TEST_VALUES_BEFORE_INSERTED_POS)
+#define TEST_VALUES                     TEST_VALUES_BEFORE_INSERTED_POS, \
+                                        TEST_VALUES_AFTER_INSERTED_POS
 #define EXTRA_TEST_VALUES               13, 21, 34
 
 template <typename T, std::size_t N>
@@ -430,4 +434,50 @@ TEST_F(StaticVectorTest, AccessFirstElement) {
 TEST_F(StaticVectorTest, AccessLastElement) {
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
     EXPECT_EQ(v[v.size() - 1], v.back());
+}
+
+TEST_F(StaticVectorTest, InsertCopiedValueAtBegin) {
+    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+
+    custom_type item(pushed_value);
+    v.insert(v.begin(), item);
+
+    EXPECT_EQ(size + 1, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        custom_type(constructed_with::copy_ctor, pushed_value),
+        WRAP_VALUES(custom_type::construct_with_move_ctor, TEST_VALUES)
+    });
+}
+
+TEST_F(StaticVectorTest, InsertCopiedValueAtEnd) {
+    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+
+    custom_type item(pushed_value);
+    v.insert(v.end(), item);
+
+    EXPECT_EQ(size + 1, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES),
+        custom_type(constructed_with::copy_ctor, pushed_value)
+    });
+}
+
+TEST_F(StaticVectorTest, InsertCopiedValueAtMiddle) {
+    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
+    int const pushed_value = 99;
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+
+    custom_type item(pushed_value);
+    v.insert(v.begin() + TEST_VALUES_INSERTED_POS, item);
+
+    EXPECT_EQ(size + 1, custom_type::num_instances());
+    assert_static_vector_values(v, {
+        WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES_BEFORE_INSERTED_POS),
+        custom_type(constructed_with::copy_ctor, pushed_value),
+        WRAP_VALUES(custom_type::construct_with_move_ctor, TEST_VALUES_AFTER_INSERTED_POS)
+    });
 }
