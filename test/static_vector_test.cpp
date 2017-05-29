@@ -143,6 +143,7 @@ std::size_t custom_type::num_instances_ = 0;
 #define REPEAT_VALUE(n, value)          REPEAT_VALUE_IMPL(n, value)
 
 #define SIZE_VECTOR                     10
+#define REPEAT_COUNT                    3
 #define TEST_VALUES_BEFORE_INSERTED_POS 1, 2, 3
 #define TEST_VALUES_AFTER_INSERTED_POS  5, 8
 #define TEST_VALUES_INSERTED_POS        VA_NARGS(TEST_VALUES_BEFORE_INSERTED_POS)
@@ -189,14 +190,12 @@ TEST_F(StaticVectorTest, EmptyVector) {
 }
 
 TEST_F(StaticVectorTest, ConstructWithCount) {
-#define COUNT 3
-    static_vector<custom_type, SIZE_VECTOR> v(COUNT);
+    static_vector<custom_type, SIZE_VECTOR> v(REPEAT_COUNT);
 
-    EXPECT_EQ(COUNT, custom_type::num_instances());
+    EXPECT_EQ(REPEAT_COUNT, custom_type::num_instances());
     assert_static_vector_values(v, {
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::default_ctor, 0))
+        REPEAT_VALUE(REPEAT_COUNT, custom_type(constructed_with::default_ctor, 0))
     });
-#undef COUNT
 }
 
 TEST_F(StaticVectorTest, ConstructEmptyVector) {
@@ -216,15 +215,13 @@ TEST_F(StaticVectorTest, ConstructFullVector) {
 }
 
 TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
-#define COUNT 3
     int const value = 10;
-    static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(value));
+    static_vector<custom_type, SIZE_VECTOR> v(REPEAT_COUNT, custom_type(value));
 
-    EXPECT_EQ(COUNT, custom_type::num_instances());
+    EXPECT_EQ(REPEAT_COUNT, custom_type::num_instances());
     assert_static_vector_values(v, {
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, value))
+        REPEAT_VALUE(REPEAT_COUNT, custom_type(constructed_with::copy_ctor, value))
     });
-#undef COUNT
 }
 
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
@@ -301,16 +298,14 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
 }
 
 TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
-#define COUNT 3
     int const value = 10;
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    v.assign(COUNT, custom_type(value));
+    v.assign(REPEAT_COUNT, custom_type(value));
 
-    EXPECT_EQ(COUNT, custom_type::num_instances());
+    EXPECT_EQ(REPEAT_COUNT, custom_type::num_instances());
     assert_static_vector_values(v, {
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, value))
+        REPEAT_VALUE(REPEAT_COUNT, custom_type(constructed_with::copy_ctor, value))
     });
-#undef COUNT
 }
 
 TEST_F(StaticVectorTest, AssignWithMethodAndInitializerList) {
@@ -523,49 +518,43 @@ TEST_F(StaticVectorTest, InsertMovedValueAtMiddle) {
 }
 
 TEST_F(StaticVectorTest, InsertRepectedValueAtBegin) {
-#define COUNT 3
-    std::size_t const size = VA_NARGS(TEST_VALUES) + COUNT;
+    std::size_t const size = VA_NARGS(TEST_VALUES) + REPEAT_COUNT;
     int const pushed_value = 99;
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    v.insert(v.begin(), COUNT, custom_type(pushed_value));
+    v.insert(v.begin(), REPEAT_COUNT, custom_type(pushed_value));
 
     EXPECT_EQ(size, custom_type::num_instances());
     assert_static_vector_values(v, {
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, pushed_value)),
+        REPEAT_VALUE(REPEAT_COUNT, custom_type(constructed_with::copy_ctor, pushed_value)),
         WRAP_VALUES(custom_type::construct_with_move_ctor, TEST_VALUES)
     });
-#undef COUNT
 }
 
 TEST_F(StaticVectorTest, InsertRepectedValueAtEnd) {
-#define COUNT 3
-    std::size_t const size = VA_NARGS(TEST_VALUES) + COUNT;
+    std::size_t const size = VA_NARGS(TEST_VALUES) + REPEAT_COUNT;
     int const pushed_value = 99;
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    v.insert(v.end(), COUNT, custom_type(pushed_value));
+    v.insert(v.end(), REPEAT_COUNT, custom_type(pushed_value));
 
     EXPECT_EQ(size, custom_type::num_instances());
     assert_static_vector_values(v, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES),
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, pushed_value))
+        REPEAT_VALUE(REPEAT_COUNT, custom_type(constructed_with::copy_ctor, pushed_value))
     });
-#undef COUNT
 }
 
 TEST_F(StaticVectorTest, InsertRepectedValueAtMiddle) {
-#define COUNT 3
-    std::size_t const size = VA_NARGS(TEST_VALUES) + COUNT;
+    std::size_t const size = VA_NARGS(TEST_VALUES) + REPEAT_COUNT;
     int const pushed_value = 99;
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    v.insert(v.begin() + TEST_VALUES_INSERTED_POS, COUNT, custom_type(pushed_value));
+    v.insert(v.begin() + TEST_VALUES_INSERTED_POS, REPEAT_COUNT, custom_type(pushed_value));
 
     EXPECT_EQ(size, custom_type::num_instances());
     assert_static_vector_values(v, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES_BEFORE_INSERTED_POS),
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, pushed_value)),
+        REPEAT_VALUE(REPEAT_COUNT, custom_type(constructed_with::copy_ctor, pushed_value)),
         WRAP_VALUES(custom_type::construct_with_move_ctor, TEST_VALUES_AFTER_INSERTED_POS)
     });
-#undef COUNT
 }
 
 TEST_F(StaticVectorTest, EmplaceValueAtBegin) {
