@@ -206,44 +206,44 @@ TEST_F(StaticVectorTest, ConstructFullVector) {
 
 TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
 #define COUNT 3
-    int const VALUE = 10;
-    static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(VALUE));
+    int const value = 10;
+    static_vector<custom_type, SIZE_VECTOR> v(COUNT, custom_type(value));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
     assert_static_vector_values(v, {
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, VALUE))
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, value))
     });
 #undef COUNT
 }
 
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
-    std::size_t constexpr SIZE = VA_NARGS(TEST_VALUES);
-    std::array<custom_type, SIZE> arr = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    std::size_t constexpr size = VA_NARGS(TEST_VALUES);
+    std::array<custom_type, size> arr = { WRAP_VALUES(custom_type, TEST_VALUES) };
 
     static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
-    EXPECT_EQ(SIZE * 2, custom_type::num_instances());
+    EXPECT_EQ(size * 2, custom_type::num_instances());
     assert_static_vector_values(v, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
     });
 }
 
 TEST_F(StaticVectorTest, ConstructWithInitializerList) {
-    std::size_t const SIZE = VA_NARGS(TEST_VALUES);
+    std::size_t const size = VA_NARGS(TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
 
-    EXPECT_EQ(SIZE, custom_type::num_instances());
+    EXPECT_EQ(size, custom_type::num_instances());
     assert_static_vector_values(v, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
     });
 }
 
 TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
-    std::size_t const SIZE = VA_NARGS(TEST_VALUES);
+    std::size_t const size = VA_NARGS(TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v1 = { WRAP_VALUES(custom_type, TEST_VALUES) };
     static_vector<custom_type, SIZE_VECTOR> v2 = v1;
 
-    EXPECT_EQ(SIZE * 2, custom_type::num_instances());
+    EXPECT_EQ(size * 2, custom_type::num_instances());
     assert_static_vector_values(v2, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, TEST_VALUES)
     });
@@ -268,23 +268,23 @@ TEST_F(StaticVectorTest, ClearValues) {
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
-    std::size_t const SIZE = VA_NARGS(EXTRA_TEST_VALUES);
+    std::size_t const size = VA_NARGS(EXTRA_TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
     v = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
 
-    EXPECT_EQ(SIZE, custom_type::num_instances());
+    EXPECT_EQ(size, custom_type::num_instances());
     assert_static_vector_values(v, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, EXTRA_TEST_VALUES)
     });
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
-    std::size_t const SIZE = VA_NARGS(EXTRA_TEST_VALUES);
+    std::size_t const size = VA_NARGS(EXTRA_TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v1 = { WRAP_VALUES(custom_type, TEST_VALUES) };
     static_vector<custom_type, SIZE_VECTOR> v2 = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
     v1 = v2;
 
-    EXPECT_EQ(SIZE * 2, custom_type::num_instances());
+    EXPECT_EQ(size * 2, custom_type::num_instances());
     assert_static_vector_values(v2, {
         WRAP_VALUES(custom_type::construct_with_copy_ctor, EXTRA_TEST_VALUES)
     });
@@ -292,13 +292,13 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
 
 TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
 #define COUNT 3
-    int const VALUE = 10;
+    int const value = 10;
     static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    v.assign(COUNT, custom_type(VALUE));
+    v.assign(COUNT, custom_type(value));
 
     EXPECT_EQ(COUNT, custom_type::num_instances());
     assert_static_vector_values(v, {
-        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, VALUE))
+        REPEAT_VALUE(COUNT, custom_type(constructed_with::copy_ctor, value))
     });
 #undef COUNT
 }
