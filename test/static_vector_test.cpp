@@ -219,7 +219,6 @@ TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
     std::size_t constexpr size = VA_NARGS(TEST_VALUES);
     std::array<custom_type, size> arr = { WRAP_VALUES(custom_type, TEST_VALUES) };
-
     static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
 
     EXPECT_EQ(size * 2, custom_type::num_instances());
@@ -241,7 +240,7 @@ TEST_F(StaticVectorTest, ConstructWithInitializerList) {
 TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
     std::size_t const size = VA_NARGS(TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v1 = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    static_vector<custom_type, SIZE_VECTOR> v2 = v1;
+    decltype(v1) v2 = v1;
 
     EXPECT_EQ(size * 2, custom_type::num_instances());
     assert_static_vector_values(v2, {
@@ -281,7 +280,7 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
 TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
     std::size_t const size = VA_NARGS(EXTRA_TEST_VALUES);
     static_vector<custom_type, SIZE_VECTOR> v1 = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    static_vector<custom_type, SIZE_VECTOR> v2 = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
+    decltype(v1) v2 = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
     v1 = v2;
 
     EXPECT_EQ(size * 2, custom_type::num_instances());
