@@ -173,6 +173,10 @@ class static_vector {
     const_reverse_iterator rend() const noexcept;
     const_reverse_iterator crend() const noexcept;
 
+ private:  // Private Method(s)
+    template <typename... Args>
+    iterator emplace_with_count(const_iterator pos, size_type count, Args&&... args);
+
  private:  // Private Property(ies)
     size_type size_;
     std::aligned_storage_t<sizeof(T), alignof(T)> data_[N];
@@ -299,26 +303,7 @@ static_vector<T, N>::insert(const_iterator pos, value_type&& value) {
 template <typename T, std::size_t N>
 inline typename static_vector<T, N>::iterator
 static_vector<T, N>::insert(const_iterator pos, size_type count, value_type const& value) {
-    assert(pos >= cbegin());
-    assert(pos <= cend());
-    assert(size() + count <= max_size());
-
-    auto offset = pos - cbegin();
-    auto ptr = data() + offset;
-    auto last = data() + size();
-    auto d_last = last + count;
-    while (ptr != last) {
-        ::new(--d_last) value_type(std::move(*(--last)));
-        last->~value_type();
-    }
-
-    for (size_type offset = 0; offset < count; ++offset) {
-        ::new(ptr + offset) value_type(value);
-    }
-
-    size_ += count;
-
-    return iterator(ptr);
+    return emplace_with_count(pos, count, value);
 }
 
 template <typename T, std::size_t N>
@@ -335,23 +320,7 @@ template <typename T, std::size_t N>
 template <typename... Args>
 typename static_vector<T, N>::iterator
 static_vector<T, N>::emplace(const_iterator pos, Args&&... args) {
-    assert(pos >= cbegin());
-    assert(pos <= cend());
-    assert(!full());
-
-    auto offset = pos - cbegin();
-    auto ptr = data() + offset;
-    auto last = data() + size();
-    auto d_last = last + 1;
-    while (ptr != last) {
-        ::new(--d_last) value_type(std::move(*(--last)));
-        last->~value_type();
-    }
-
-    ::new(ptr) value_type(std::forward<Args>(args)...);
-    ++size_;
-
-    return iterator(ptr);
+    return emplace_with_count(pos, 1, std::forward<Args>(args)...);
 }
 
 template <typename T, std::size_t N>
@@ -538,6 +507,32 @@ template <typename T, std::size_t N>
 inline typename static_vector<T, N>::const_reverse_iterator
 static_vector<T, N>::crend() const noexcept {
     return const_reverse_iterator(begin());
+}
+
+template <typename T, std::size_t N>
+template <typename... Args>
+typename static_vector<T, N>::iterator
+static_vector<T, N>::emplace_with_count(const_iterator pos, size_type count, Args&&... args) {
+    assert(pos >= cbegin());
+    assert(pos <= cend());
+    assert(!full());
+
+    auto offset = pos - cbegin();
+    auto ptr = data() + offset;
+    auto last = data() + size();
+    auto d_last = last + count;
+    while (ptr != last) {
+        ::new(--d_last) value_type(std::move(*(--last)));
+        last->~value_type();
+    }
+
+    for (size_type offset = 0; offset < count; ++offset) {
+        ::new(ptr + offset) value_type(std::forward<Args>(args)...);
+    }
+
+    size_ += count;
+
+    return iterator(ptr);
 }
 
 }  // namespace internal
