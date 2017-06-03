@@ -176,6 +176,10 @@ class static_vector {
  private:  // Private Method(s)
     template <typename... Args>
     iterator emplace_with_count(const_iterator pos, size_type count, Args&&... args);
+    void assign_at(value_type* pos, value_type const& value);
+    void assign_at(value_type* pos, value_type&& value);
+    template <typename... Args>
+    void assign_at(value_type* pos, Args&&... args);
 
  private:  // Private Property(ies)
     size_type size_;
@@ -521,18 +525,45 @@ static_vector<T, N>::emplace_with_count(const_iterator pos, size_type count, Arg
     auto ptr = data() + offset;
     auto last = data() + size();
     auto d_last = last + count;
+
+    auto num_new_objs = count;
     while (ptr != last) {
-        ::new(--d_last) value_type(std::move(*(--last)));
-        last->~value_type();
+        if (num_new_objs > 0) {
+            ::new(--d_last) value_type(std::move(*(--last)));
+            --num_new_objs;
+        } else {
+            *(--d_last) = std::move(*(--last));
+        }
     }
 
-    for (size_type offset = 0; offset < count; ++offset) {
-        ::new(ptr + offset) value_type(std::forward<Args>(args)...);
+    while (num_new_objs > 0) {
+        ::new(--d_last) value_type(std::forward<Args>(args)...);
+        --num_new_objs;
+    }
+
+    while (ptr != d_last) {
+        assign_at(--d_last, std::forward<Args>(args)...);
     }
 
     size_ += count;
 
     return iterator(ptr);
+}
+
+template <typename T, std::size_t N>
+inline void static_vector<T, N>::assign_at(value_type* pos, value_type const& value) {
+    *pos = value;
+}
+
+template <typename T, std::size_t N>
+inline void static_vector<T, N>::assign_at(value_type* pos, value_type&& value) {
+    *pos = std::move(value);
+}
+
+template <typename T, std::size_t N>
+template <typename... Args>
+inline void static_vector<T, N>::assign_at(value_type* pos, Args&&... args) {
+    *pos = value_type(std::forward<Args>(args)...);
 }
 
 }  // namespace internal
