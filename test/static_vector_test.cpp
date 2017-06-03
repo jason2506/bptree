@@ -18,6 +18,41 @@
 
 #include <bptree/internal/static_vector.hpp>
 
+#define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, n, ...) n
+#define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
+#define WRAP_VALUES_IMPL_1(wrap, value) wrap(value)
+#define WRAP_VALUES_IMPL_2(wrap, _1, value) \
+        WRAP_VALUES_IMPL_1(wrap, _1), wrap(value)
+#define WRAP_VALUES_IMPL_3(wrap, _1, _2, value) \
+        WRAP_VALUES_IMPL_2(wrap, _1, _2), wrap(value)
+#define WRAP_VALUES_IMPL_4(wrap, _1, _2, _3, value) \
+        WRAP_VALUES_IMPL_3(wrap, _1, _2, _3), wrap(value)
+#define WRAP_VALUES_IMPL_5(wrap, _1, _2, _3, _4, value) \
+        WRAP_VALUES_IMPL_4(wrap, _1, _2, _3, _4), wrap(value)
+#define WRAP_VALUES_IMPL_6(wrap, _1, _2, _3, _4, _5, value) \
+        WRAP_VALUES_IMPL_5(wrap, _1, _2, _3, _4, _5), wrap(value)
+#define WRAP_VALUES_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, value) \
+        WRAP_VALUES_IMPL_6(wrap, _1, _2, _3, _4, _5, _6), wrap(value)
+#define WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, value) \
+        WRAP_VALUES_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, _7), wrap(value)
+#define WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, value) \
+        WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, _8), wrap(value)
+#define WRAP_VALUES_IMPL_10(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9, value) \
+        WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9), wrap(value)
+#define WRAP_VALUES_IMPL_(n, wrap, ...) WRAP_VALUES_IMPL_##n(wrap, __VA_ARGS__)
+#define WRAP_VALUES_IMPL(n, wrap, ...)  WRAP_VALUES_IMPL_(n, wrap, __VA_ARGS__)
+#define WRAP_VALUES(wrap, ...)          WRAP_VALUES_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__)
+
+#define SIZE_VECTOR                     10
+#define REPEAT_COUNT                    3
+#define TEST_VALUES_BEFORE_INSERTED_POS 1, 2, 3
+#define TEST_VALUES_AFTER_INSERTED_POS  5, 8
+#define TEST_VALUES_INSERTED_POS        VA_NARGS(TEST_VALUES_BEFORE_INSERTED_POS)
+#define TEST_VALUES                     TEST_VALUES_BEFORE_INSERTED_POS, \
+                                        TEST_VALUES_AFTER_INSERTED_POS
+#define EXTRA_TEST_VALUES               13, 21, 34
+
 using bptree::internal::static_vector;
 
 enum class constructed_with {
@@ -147,41 +182,6 @@ class StaticVectorTest : public ::testing::Test {
 
 std::size_t custom_type::num_instances_ = 0;
 int const inserted_value = 99;
-
-#define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, n, ...) n
-#define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-
-#define WRAP_VALUES_IMPL_1(wrap, value) wrap(value)
-#define WRAP_VALUES_IMPL_2(wrap, _1, value) \
-        WRAP_VALUES_IMPL_1(wrap, _1), wrap(value)
-#define WRAP_VALUES_IMPL_3(wrap, _1, _2, value) \
-        WRAP_VALUES_IMPL_2(wrap, _1, _2), wrap(value)
-#define WRAP_VALUES_IMPL_4(wrap, _1, _2, _3, value) \
-        WRAP_VALUES_IMPL_3(wrap, _1, _2, _3), wrap(value)
-#define WRAP_VALUES_IMPL_5(wrap, _1, _2, _3, _4, value) \
-        WRAP_VALUES_IMPL_4(wrap, _1, _2, _3, _4), wrap(value)
-#define WRAP_VALUES_IMPL_6(wrap, _1, _2, _3, _4, _5, value) \
-        WRAP_VALUES_IMPL_5(wrap, _1, _2, _3, _4, _5), wrap(value)
-#define WRAP_VALUES_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, value) \
-        WRAP_VALUES_IMPL_6(wrap, _1, _2, _3, _4, _5, _6), wrap(value)
-#define WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, value) \
-        WRAP_VALUES_IMPL_7(wrap, _1, _2, _3, _4, _5, _6, _7), wrap(value)
-#define WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, value) \
-        WRAP_VALUES_IMPL_8(wrap, _1, _2, _3, _4, _5, _6, _7, _8), wrap(value)
-#define WRAP_VALUES_IMPL_10(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9, value) \
-        WRAP_VALUES_IMPL_9(wrap, _1, _2, _3, _4, _5, _6, _7, _8, _9), wrap(value)
-#define WRAP_VALUES_IMPL_(n, wrap, ...) WRAP_VALUES_IMPL_##n(wrap, __VA_ARGS__)
-#define WRAP_VALUES_IMPL(n, wrap, ...)  WRAP_VALUES_IMPL_(n, wrap, __VA_ARGS__)
-#define WRAP_VALUES(wrap, ...)          WRAP_VALUES_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__)
-
-#define SIZE_VECTOR                     10
-#define REPEAT_COUNT                    3
-#define TEST_VALUES_BEFORE_INSERTED_POS 1, 2, 3
-#define TEST_VALUES_AFTER_INSERTED_POS  5, 8
-#define TEST_VALUES_INSERTED_POS        VA_NARGS(TEST_VALUES_BEFORE_INSERTED_POS)
-#define TEST_VALUES                     TEST_VALUES_BEFORE_INSERTED_POS, \
-                                        TEST_VALUES_AFTER_INSERTED_POS
-#define EXTRA_TEST_VALUES               13, 21, 34
 
 template <typename T, std::size_t N>
 void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
