@@ -193,7 +193,7 @@ inline static_vector<T, N>::static_vector()
 }
 
 template <typename T, std::size_t N>
-inline static_vector<T, N>::static_vector(size_type count)
+static_vector<T, N>::static_vector(size_type count)
   : size_(count), data_() {
     assert(count <= max_size());
 
@@ -318,7 +318,7 @@ inline void static_vector<T, N>::push_back(value_type&& value) {
 
 template <typename T, std::size_t N>
 template <typename... Args>
-typename static_vector<T, N>::iterator
+inline typename static_vector<T, N>::iterator
 static_vector<T, N>::emplace(const_iterator pos, Args&&... args) {
     return emplace_with_count(pos, 1, std::forward<Args>(args)...);
 }
