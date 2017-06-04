@@ -212,6 +212,73 @@ void assert_static_vector_values(static_vector<T, N> const& v, expected_result<M
     }
 }
 
+template <typename Insert, typename GetInsertPos, std::size_t N>
+void test_insert_at(Insert insert, GetInsertPos get_insert_pos,
+                    std::size_t num_extra_instances, expected_result<N> const& expected) {
+    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
+
+    insert(v, get_insert_pos(v));
+
+    EXPECT_EQ(N * 2 + num_extra_instances, custom_type::num_instances());
+    assert_static_vector_values(v, expected);
+}
+
+template <std::size_t NumInserted, typename Insert>
+void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+    int const values[] = { TEST_VALUES };
+
+    constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
+    expected_result<size> expected;
+    expected.assign(0, NumInserted, inserted_value, ctor);
+    expected.assign(NumInserted, size - NumInserted, values, constructed_with::move_ctor);
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto get_insert_pos = [](vector& v) { return v.begin(); };
+    test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
+}
+
+template <std::size_t NumInserted, typename Insert>
+void test_insert_at_end(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+    int const values[] = { TEST_VALUES };
+
+    constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
+    expected_result<size> expected;
+    expected.assign(0, size - NumInserted, values, constructed_with::skipped);
+    expected.assign(size - NumInserted, NumInserted, inserted_value, ctor);
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto get_insert_pos = [](vector& v) { return v.end(); };
+    test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
+}
+
+template <std::size_t NumInserted, typename Insert>
+void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+    int const values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
+    int const values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
+
+    constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
+    expected_result<size> expected;
+    expected.assign(0, TEST_VALUES_INSERTED_POS,
+                    values_before, constructed_with::skipped);
+    expected.assign(TEST_VALUES_INSERTED_POS, NumInserted,
+                    inserted_value, ctor);
+    expected.assign(TEST_VALUES_INSERTED_POS + NumInserted,
+                    size - TEST_VALUES_INSERTED_POS - NumInserted,
+                    values_after, constructed_with::move_ctor);
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto get_insert_pos = [](vector& v) { return v.begin() + TEST_VALUES_INSERTED_POS; };
+    test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
+}
+
+template <std::size_t NumInserted, typename Insert>
+void test_insert(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+    test_insert_at_begin<NumInserted>(insert, num_extra_instances, ctor);
+    test_insert_at_end<NumInserted>(insert, num_extra_instances, ctor);
+    test_insert_at_middle<NumInserted>(insert, num_extra_instances, ctor);
+}
+
 TEST_F(StaticVectorTest, EmptyVector) {
     static_vector<custom_type, SIZE_VECTOR> v;
 
@@ -456,194 +523,39 @@ TEST_F(StaticVectorTest, AccessLastElement) {
     EXPECT_EQ(v[v.size() - 1], v.back());
 }
 
-TEST_F(StaticVectorTest, InsertCopiedValueAtBegin) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-
+TEST_F(StaticVectorTest, InsertCopiedValue) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
     custom_type item(constructed_with::skipped, inserted_value);
-    v.insert(v.begin(), item);
+    auto insert = [&item](vector& v, typename vector::iterator it) {
+        v.insert(it, item);
+    };
 
-    EXPECT_EQ(size + 1, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, 1, inserted_value, constructed_with::copy_ctor);
-    expected.assign(1, size - 1, values, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
+    test_insert<1>(insert, 1, constructed_with::copy_ctor);
 }
 
-TEST_F(StaticVectorTest, InsertCopiedValueAtEnd) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
+TEST_F(StaticVectorTest, InsertMovedValue) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [](vector& v, typename vector::iterator it) {
+        v.insert(it, custom_type(constructed_with::skipped, inserted_value));
+    };
 
-    custom_type item(constructed_with::skipped, inserted_value);
-    v.insert(v.end(), item);
-
-    EXPECT_EQ(size + 1, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, size - 1, values, constructed_with::skipped);
-    expected.assign(size - 1, 1, inserted_value, constructed_with::copy_ctor);
-    assert_static_vector_values(v, expected);
+    test_insert<1>(insert, 0, constructed_with::move_ctor);
 }
 
-TEST_F(StaticVectorTest, InsertCopiedValueAtMiddle) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
+TEST_F(StaticVectorTest, InsertRepeatedValues) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [](vector& v, typename vector::iterator it) {
+        v.insert(it, REPEAT_COUNT, custom_type(constructed_with::skipped, inserted_value));
+    };
 
-    custom_type item(constructed_with::skipped, inserted_value);
-    v.insert(v.begin() + TEST_VALUES_INSERTED_POS, item);
-
-    EXPECT_EQ(size + 1, custom_type::num_instances());
-    int values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
-    int values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
-    expected_result<size> expected;
-    expected.assign(0, TEST_VALUES_INSERTED_POS, values_before, constructed_with::skipped);
-    expected.assign(TEST_VALUES_INSERTED_POS, 1, inserted_value, constructed_with::copy_ctor);
-    expected.assign(TEST_VALUES_INSERTED_POS + 1, size - TEST_VALUES_INSERTED_POS - 1,
-                    values_after, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
+    test_insert<REPEAT_COUNT>(insert, 0, constructed_with::copy_ctor);
 }
 
-TEST_F(StaticVectorTest, InsertMovedValueAtBegin) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.insert(v.begin(), custom_type(constructed_with::skipped, inserted_value));
+TEST_F(StaticVectorTest, EmplaceValue) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [](vector& v, typename vector::iterator it) {
+        v.emplace(it, inserted_value);
+    };
 
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, 1, inserted_value, constructed_with::move_ctor);
-    expected.assign(1, size - 1, values, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, InsertMovedValueAtEnd) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.insert(v.end(), custom_type(constructed_with::skipped, inserted_value));
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, size - 1, values, constructed_with::skipped);
-    expected.assign(size - 1, 1, inserted_value, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, InsertMovedValueAtMiddle) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.insert(v.begin() + TEST_VALUES_INSERTED_POS,
-        custom_type(constructed_with::skipped, inserted_value));
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
-    int values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
-    expected_result<size> expected;
-    expected.assign(0, TEST_VALUES_INSERTED_POS, values_before, constructed_with::skipped);
-    expected.assign(TEST_VALUES_INSERTED_POS, 1, inserted_value, constructed_with::move_ctor);
-    expected.assign(TEST_VALUES_INSERTED_POS + 1, size - TEST_VALUES_INSERTED_POS - 1,
-                    values_after, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, InsertRepeatedValueAtBegin) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + REPEAT_COUNT;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.insert(v.begin(), REPEAT_COUNT,
-        custom_type(constructed_with::skipped, inserted_value));
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, REPEAT_COUNT, inserted_value, constructed_with::copy_ctor);
-    expected.assign(REPEAT_COUNT, size - REPEAT_COUNT, values, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, InsertRepeatedValueAtEnd) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + REPEAT_COUNT;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.insert(v.end(), REPEAT_COUNT,
-        custom_type(constructed_with::skipped, inserted_value));
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, size - REPEAT_COUNT, values, constructed_with::skipped);
-    expected.assign(size - REPEAT_COUNT, REPEAT_COUNT, inserted_value, constructed_with::copy_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, InsertRepeatedValueAtMiddle) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + REPEAT_COUNT;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.insert(v.begin() + TEST_VALUES_INSERTED_POS, REPEAT_COUNT,
-        custom_type(constructed_with::skipped, inserted_value));
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
-    int values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
-    expected_result<size> expected;
-    expected.assign(0, TEST_VALUES_INSERTED_POS, values_before, constructed_with::skipped);
-    expected.assign(TEST_VALUES_INSERTED_POS, REPEAT_COUNT,
-                    inserted_value, constructed_with::copy_ctor);
-    expected.assign(TEST_VALUES_INSERTED_POS + REPEAT_COUNT,
-                    size - TEST_VALUES_INSERTED_POS - REPEAT_COUNT,
-                    values_after, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, EmplaceValueAtBegin) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.emplace(v.begin(), inserted_value);
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, 1, inserted_value, constructed_with::value_ctor);
-    expected.assign(1, size - 1, values, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, EmplaceValueAtEnd) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.emplace(v.end(), inserted_value);
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values[] = { TEST_VALUES };
-    expected_result<size> expected;
-    expected.assign(0, size - 1, values, constructed_with::skipped);
-    expected.assign(size - 1, 1, inserted_value, constructed_with::value_ctor);
-    assert_static_vector_values(v, expected);
-}
-
-TEST_F(StaticVectorTest, EmplaceValueAtMiddle) {
-    std::size_t const size = VA_NARGS(TEST_VALUES) + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-    v.emplace(v.begin() + TEST_VALUES_INSERTED_POS, inserted_value);
-
-    EXPECT_EQ(size, custom_type::num_instances());
-    int values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
-    int values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
-    expected_result<size> expected;
-    expected.assign(0, TEST_VALUES_INSERTED_POS, values_before, constructed_with::skipped);
-    expected.assign(TEST_VALUES_INSERTED_POS, 1, inserted_value, constructed_with::value_ctor);
-    expected.assign(TEST_VALUES_INSERTED_POS + 1, size - TEST_VALUES_INSERTED_POS - 1,
-                    values_after, constructed_with::move_ctor);
-    assert_static_vector_values(v, expected);
+    test_insert<1>(insert, 0, constructed_with::value_ctor);
 }
