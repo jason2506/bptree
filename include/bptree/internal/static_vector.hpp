@@ -134,6 +134,8 @@ class static_vector {
     iterator insert(const_iterator pos, value_type const& value);
     iterator insert(const_iterator pos, value_type&& value);
     iterator insert(const_iterator pos, size_type count, value_type const& value);
+    template <typename InputIt>
+    iterator insert(const_iterator pos, InputIt first, InputIt last);
     void push_back(value_type const& value);
     void push_back(value_type&& value);
     template <typename... Args>
@@ -308,6 +310,18 @@ template <typename T, std::size_t N>
 inline typename static_vector<T, N>::iterator
 static_vector<T, N>::insert(const_iterator pos, size_type count, value_type const& value) {
     return emplace_with_count(pos, count, value);
+}
+
+template <typename T, std::size_t N>
+template <typename InputIt>
+typename static_vector<T, N>::iterator
+static_vector<T, N>::insert(const_iterator pos, InputIt first, InputIt last) {
+    auto offset = pos - cbegin();
+    for (; first != last; ++first, ++pos) {
+        pos = emplace(pos, *first);
+    }
+
+    return begin() + offset;
 }
 
 template <typename T, std::size_t N>

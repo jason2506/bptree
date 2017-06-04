@@ -11,6 +11,7 @@
 
 #include <array>
 #include <algorithm>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 
@@ -171,6 +172,39 @@ class expected_result {
 
  private:  // Private Property(ies)
     std::array<custom_type, N> values_;
+};
+
+template <typename Iterator>
+class input_iterator_adaptor {
+ public:  // Public Type(s)
+    using iterator_category = std::input_iterator_tag;
+    using value_type = typename std::iterator_traits<Iterator>::value_type;
+    using difference_type = typename std::iterator_traits<Iterator>::difference_type;
+    using pointer = typename std::iterator_traits<Iterator>::pointer;
+    using reference = typename std::iterator_traits<Iterator>::reference;
+
+ public:  // Public Method(s)
+    explicit input_iterator_adaptor(Iterator it)
+      : it_(it)
+        { /* do nothing */ }
+
+    reference operator*() const
+        { return *it_; }
+    pointer operator->() const
+        { return it_.operator->(); }
+
+    input_iterator_adaptor& operator++()
+        { ++it_; return *this; }
+    input_iterator_adaptor operator++(int) const
+        { input_iterator_adaptor it(*this); ++it_; return it; }
+
+    bool operator==(input_iterator_adaptor const& other) const noexcept
+        { return it_ == other.it_; }
+    bool operator!=(input_iterator_adaptor const& other) const noexcept
+        { return it_ != other.it_; }
+
+ private:  // Private Property(ies)
+    Iterator it_;
 };
 
 class StaticVectorTest : public ::testing::Test {
@@ -581,6 +615,23 @@ TEST_F(StaticVectorTest, InsertNothing) {
         EXPECT_EQ(size * 2, custom_type::num_instances());
         assert_static_vector_values(v, expected);
     }
+}
+
+TEST_F(StaticVectorTest, InsertInputIteratorPair) {
+    std::size_t constexpr num_inserted = VA_NARGS(EXTRA_TEST_VALUES);
+    std::array<custom_type, num_inserted> arr = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
+
+    input_iterator_adaptor<
+        typename std::array<custom_type, num_inserted>::iterator
+    > first(arr.begin()), last(arr.end());
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [&first, &last](vector& v, typename vector::iterator it) {
+        return v.insert(it, first, last);
+    };
+
+    int const values[] = { EXTRA_TEST_VALUES };
+    test_insert<num_inserted>(insert, num_inserted, values, constructed_with::copy_ctor);
 }
 
 TEST_F(StaticVectorTest, EmplaceValue) {
