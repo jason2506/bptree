@@ -634,6 +634,19 @@ TEST_F(StaticVectorTest, InsertInputIteratorPair) {
     test_insert<num_inserted>(insert, num_inserted, values, constructed_with::copy_ctor);
 }
 
+TEST_F(StaticVectorTest, InsertForwardIteratorPair) {
+    std::size_t constexpr num_inserted = VA_NARGS(EXTRA_TEST_VALUES);
+    std::array<custom_type, num_inserted> arr = { WRAP_VALUES(custom_type, EXTRA_TEST_VALUES) };
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [&arr](vector& v, typename vector::iterator it) {
+        return v.insert(it, arr.begin(), arr.end());
+    };
+
+    int const values[] = { EXTRA_TEST_VALUES };
+    test_insert<num_inserted>(insert, num_inserted, values, constructed_with::copy_ctor);
+}
+
 TEST_F(StaticVectorTest, EmplaceValue) {
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto insert = [](vector& v, typename vector::iterator it) {
