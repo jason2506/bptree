@@ -125,6 +125,9 @@ class custom_type {
         { return ctor_; }
 
  public:  // Public Static Method(s)
+    static custom_type skipped(int val)
+        { return custom_type(constructed_with::skipped, val); }
+
     static void reset_num_instances()
         { num_instances_ = 0; }
 
@@ -645,6 +648,17 @@ TEST_F(StaticVectorTest, InsertForwardIteratorPair) {
 
     int const values[] = { EXTRA_TEST_VALUES };
     test_insert<num_inserted>(insert, num_inserted, values, constructed_with::copy_ctor);
+}
+
+TEST_F(StaticVectorTest, InsertInitializerList) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [](vector& v, typename vector::iterator it) {
+        return v.insert(it, { WRAP_VALUES(custom_type::skipped, EXTRA_TEST_VALUES) });
+    };
+
+    std::size_t constexpr num_inserted = VA_NARGS(EXTRA_TEST_VALUES);
+    int const values[] = { EXTRA_TEST_VALUES };
+    test_insert<num_inserted>(insert, 0, values, constructed_with::copy_ctor);
 }
 
 TEST_F(StaticVectorTest, EmplaceValue) {

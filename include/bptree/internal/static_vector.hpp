@@ -152,6 +152,7 @@ class static_vector {
         typename static_vector<T, N>::iterator
     >
     insert(const_iterator pos, ForwardIt first, ForwardIt last);
+    iterator insert(const_iterator pos, std::initializer_list<value_type> il);
     void push_back(value_type const& value);
     void push_back(value_type&& value);
     template <typename... Args>
@@ -381,6 +382,12 @@ static_vector<T, N>::insert(const_iterator pos, ForwardIt first, ForwardIt last)
     size_ += count;
 
     return iterator(ptr);
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::iterator
+static_vector<T, N>::insert(const_iterator pos, std::initializer_list<value_type> il) {
+    return insert(pos, il.begin(), il.end());
 }
 
 template <typename T, std::size_t N>
