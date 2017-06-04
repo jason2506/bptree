@@ -135,7 +135,23 @@ class static_vector {
     iterator insert(const_iterator pos, value_type&& value);
     iterator insert(const_iterator pos, size_type count, value_type const& value);
     template <typename InputIt>
-    iterator insert(const_iterator pos, InputIt first, InputIt last);
+    std::enable_if_t<
+        std::is_same<
+            typename std::iterator_traits<InputIt>::iterator_category,
+            std::input_iterator_tag
+        >::value,
+        typename static_vector<T, N>::iterator
+    >
+    insert(const_iterator pos, InputIt first, InputIt last);
+    template <typename ForwardIt>
+    std::enable_if_t<
+        std::is_convertible<
+            typename std::iterator_traits<ForwardIt>::iterator_category,
+            std::forward_iterator_tag
+        >::value,
+        typename static_vector<T, N>::iterator
+    >
+    insert(const_iterator pos, ForwardIt first, ForwardIt last);
     void push_back(value_type const& value);
     void push_back(value_type&& value);
     template <typename... Args>
@@ -314,7 +330,13 @@ static_vector<T, N>::insert(const_iterator pos, size_type count, value_type cons
 
 template <typename T, std::size_t N>
 template <typename InputIt>
-typename static_vector<T, N>::iterator
+std::enable_if_t<
+    std::is_same<
+        typename std::iterator_traits<InputIt>::iterator_category,
+        std::input_iterator_tag
+    >::value,
+    typename static_vector<T, N>::iterator
+>
 static_vector<T, N>::insert(const_iterator pos, InputIt first, InputIt last) {
     auto offset = pos - cbegin();
     for (; first != last; ++first, ++pos) {
@@ -322,6 +344,54 @@ static_vector<T, N>::insert(const_iterator pos, InputIt first, InputIt last) {
     }
 
     return begin() + offset;
+}
+
+template <typename T, std::size_t N>
+template <typename ForwardIt>
+std::enable_if_t<
+    std::is_convertible<
+        typename std::iterator_traits<ForwardIt>::iterator_category,
+        std::forward_iterator_tag
+    >::value,
+    typename static_vector<T, N>::iterator
+>
+static_vector<T, N>::insert(const_iterator pos, ForwardIt first, ForwardIt last) {
+    auto count = std::distance(first, last);
+    auto offset = pos - cbegin();
+    auto ptr = data() + offset;
+    if (count == 0) {
+        return iterator(ptr);
+    }
+
+    auto s_last = data() + size();
+    auto d_last = s_last + count;
+
+    auto num_new_objs = count;
+    while (ptr != s_last) {
+        if (num_new_objs > 0) {
+            ::new(--d_last) value_type(std::move(*(--s_last)));
+            --num_new_objs;
+        } else {
+            *(--d_last) = std::move(*(--s_last));
+        }
+    }
+
+    offset = 0;
+    while (num_new_objs + offset < count) {
+        assign_at(ptr + offset, *first);
+        ++offset;
+        ++first;
+    }
+
+    while (first != last) {
+        ::new(ptr + offset) value_type(*first);
+        ++offset;
+        ++first;
+    }
+
+    size_ += count;
+
+    return iterator(ptr);
 }
 
 template <typename T, std::size_t N>
