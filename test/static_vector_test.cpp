@@ -228,13 +228,13 @@ void test_insert_at(Insert insert, GetInsertPos get_insert_pos,
     assert_static_vector_values(v, expected);
 }
 
-template <std::size_t NumInserted, typename Insert>
-void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+template <std::size_t NumInserted, typename Insert, typename... Args>
+void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, Args&&... args) {
     int const values[] = { TEST_VALUES };
 
     constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
     expected_result<size> expected;
-    expected.assign(0, NumInserted, inserted_value, ctor);
+    expected.assign(0, NumInserted, std::forward<Args>(args)...);
     expected.assign(NumInserted, size - NumInserted, values, constructed_with::move_ctor);
 
     SCOPED_TRACE("Insert at begin");
@@ -243,14 +243,14 @@ void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, constr
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
 
-template <std::size_t NumInserted, typename Insert>
-void test_insert_at_end(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+template <std::size_t NumInserted, typename Insert, typename... Args>
+void test_insert_at_end(Insert insert, std::size_t num_extra_instances, Args&&... args) {
     int const values[] = { TEST_VALUES };
 
     constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
     expected_result<size> expected;
     expected.assign(0, size - NumInserted, values, constructed_with::skipped);
-    expected.assign(size - NumInserted, NumInserted, inserted_value, ctor);
+    expected.assign(size - NumInserted, NumInserted, std::forward<Args>(args)...);
 
     SCOPED_TRACE("Insert at end");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
@@ -258,8 +258,8 @@ void test_insert_at_end(Insert insert, std::size_t num_extra_instances, construc
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
 
-template <std::size_t NumInserted, typename Insert>
-void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
+template <std::size_t NumInserted, typename Insert, typename... Args>
+void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, Args&&... args) {
     int const values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
     int const values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
 
@@ -268,7 +268,7 @@ void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, const
     expected.assign(0, TEST_VALUES_INSERTED_POS,
                     values_before, constructed_with::skipped);
     expected.assign(TEST_VALUES_INSERTED_POS, NumInserted,
-                    inserted_value, ctor);
+                    std::forward<Args>(args)...);
     expected.assign(TEST_VALUES_INSERTED_POS + NumInserted,
                     size - TEST_VALUES_INSERTED_POS - NumInserted,
                     values_after, constructed_with::move_ctor);
@@ -279,11 +279,11 @@ void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, const
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
 
-template <std::size_t NumInserted, typename Insert>
-void test_insert(Insert insert, std::size_t num_extra_instances, constructed_with ctor) {
-    test_insert_at_begin<NumInserted>(insert, num_extra_instances, ctor);
-    test_insert_at_end<NumInserted>(insert, num_extra_instances, ctor);
-    test_insert_at_middle<NumInserted>(insert, num_extra_instances, ctor);
+template <std::size_t NumInserted, typename Insert, typename... Args>
+void test_insert(Insert insert, std::size_t num_extra_instances, Args&&... args) {
+    test_insert_at_begin<NumInserted>(insert, num_extra_instances, std::forward<Args>(args)...);
+    test_insert_at_end<NumInserted>(insert, num_extra_instances, std::forward<Args>(args)...);
+    test_insert_at_middle<NumInserted>(insert, num_extra_instances, std::forward<Args>(args)...);
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {
@@ -537,7 +537,7 @@ TEST_F(StaticVectorTest, InsertCopiedValue) {
         return v.insert(it, item);
     };
 
-    test_insert<1>(insert, 1, constructed_with::copy_ctor);
+    test_insert<1>(insert, 1, inserted_value, constructed_with::copy_ctor);
 }
 
 TEST_F(StaticVectorTest, InsertMovedValue) {
@@ -546,7 +546,7 @@ TEST_F(StaticVectorTest, InsertMovedValue) {
         return v.insert(it, custom_type(constructed_with::skipped, inserted_value));
     };
 
-    test_insert<1>(insert, 0, constructed_with::move_ctor);
+    test_insert<1>(insert, 0, inserted_value, constructed_with::move_ctor);
 }
 
 TEST_F(StaticVectorTest, InsertRepeatedValues) {
@@ -555,7 +555,7 @@ TEST_F(StaticVectorTest, InsertRepeatedValues) {
         return v.insert(it, REPEAT_COUNT, custom_type(constructed_with::skipped, inserted_value));
     };
 
-    test_insert<REPEAT_COUNT>(insert, 0, constructed_with::copy_ctor);
+    test_insert<REPEAT_COUNT>(insert, 0, inserted_value, constructed_with::copy_ctor);
 }
 
 TEST_F(StaticVectorTest, InsertNothing) {
@@ -589,5 +589,5 @@ TEST_F(StaticVectorTest, EmplaceValue) {
         return v.emplace(it, inserted_value);
     };
 
-    test_insert<1>(insert, 0, constructed_with::value_ctor);
+    test_insert<1>(insert, 0, inserted_value, constructed_with::value_ctor);
 }
