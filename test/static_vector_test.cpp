@@ -233,6 +233,7 @@ void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, constr
     expected.assign(0, NumInserted, inserted_value, ctor);
     expected.assign(NumInserted, size - NumInserted, values, constructed_with::move_ctor);
 
+    SCOPED_TRACE("Insert at begin");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto get_insert_pos = [](vector& v) { return v.begin(); };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
@@ -247,6 +248,7 @@ void test_insert_at_end(Insert insert, std::size_t num_extra_instances, construc
     expected.assign(0, size - NumInserted, values, constructed_with::skipped);
     expected.assign(size - NumInserted, NumInserted, inserted_value, ctor);
 
+    SCOPED_TRACE("Insert at end");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto get_insert_pos = [](vector& v) { return v.end(); };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
@@ -267,6 +269,7 @@ void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, const
                     size - TEST_VALUES_INSERTED_POS - NumInserted,
                     values_after, constructed_with::move_ctor);
 
+    SCOPED_TRACE("Insert at middle");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto get_insert_pos = [](vector& v) { return v.begin() + TEST_VALUES_INSERTED_POS; };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
