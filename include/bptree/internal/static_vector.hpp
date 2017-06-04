@@ -523,6 +523,10 @@ static_vector<T, N>::emplace_with_count(const_iterator pos, size_type count, Arg
 
     auto offset = pos - cbegin();
     auto ptr = data() + offset;
+    if (count == 0) {
+        return iterator(ptr);
+    }
+
     auto last = data() + size();
     auto d_last = last + count;
 

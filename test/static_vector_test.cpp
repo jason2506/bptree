@@ -558,6 +558,31 @@ TEST_F(StaticVectorTest, InsertRepeatedValues) {
     test_insert<REPEAT_COUNT>(insert, 0, constructed_with::copy_ctor);
 }
 
+TEST_F(StaticVectorTest, InsertNothing) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto insert = [](vector& v, typename vector::iterator it) {
+        return v.insert(it, REPEAT_COUNT, custom_type(constructed_with::skipped, inserted_value));
+    };
+
+    int const values[] = { TEST_VALUES };
+    std::size_t const size = VA_NARGS(TEST_VALUES);
+    expected_result<size> expected(values, constructed_with::skipped);
+
+    for (std::size_t offset = 0; offset <= size; ++offset) {
+        std::ostringstream ss;
+        ss << "offset = " << offset;
+        SCOPED_TRACE(ss.str());
+
+        static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+        std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
+
+        v.insert(v.begin() + offset, 0, custom_type(constructed_with::skipped, inserted_value));
+
+        EXPECT_EQ(size * 2, custom_type::num_instances());
+        assert_static_vector_values(v, expected);
+    }
+}
+
 TEST_F(StaticVectorTest, EmplaceValue) {
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto insert = [](vector& v, typename vector::iterator it) {
