@@ -50,6 +50,7 @@
 #define TEST_VALUES_BEFORE_INSERTED_POS 1, 2, 3
 #define TEST_VALUES_AFTER_INSERTED_POS  5, 8
 #define TEST_VALUES_INSERTED_POS        VA_NARGS(TEST_VALUES_BEFORE_INSERTED_POS)
+#define TEST_VALUES_ERASED_POS          2
 #define TEST_VALUES                     TEST_VALUES_BEFORE_INSERTED_POS, \
                                         TEST_VALUES_AFTER_INSERTED_POS
 #define EXTRA_TEST_VALUES               13, 21, 34
@@ -321,6 +322,73 @@ void test_insert(Insert insert, std::size_t num_extra_instances, Args&&... args)
     test_insert_at_begin<NumInserted>(insert, num_extra_instances, std::forward<Args>(args)...);
     test_insert_at_end<NumInserted>(insert, num_extra_instances, std::forward<Args>(args)...);
     test_insert_at_middle<NumInserted>(insert, num_extra_instances, std::forward<Args>(args)...);
+}
+
+template <typename Erase, typename GetErasePos, std::size_t N>
+void test_erase_at(Erase erase, GetErasePos get_erase_pos, expected_result<N> const& expected) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    vector v = { WRAP_VALUES(custom_type, TEST_VALUES) };
+    std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
+
+    vector::iterator erase_pos = get_erase_pos(v);
+    auto offset = erase_pos - v.begin();
+    vector::iterator it = erase(v, erase_pos);
+
+    EXPECT_EQ(v.begin() + offset, it);
+    EXPECT_EQ(N * 2, custom_type::num_instances());
+    assert_static_vector_values(v, expected);
+}
+
+template <std::size_t NumErased, typename Erase, typename... Args>
+void test_erase_at_begin(Erase erase, Args&&... args) {
+    int const values[] = { TEST_VALUES };
+
+    constexpr std::size_t size = VA_NARGS(TEST_VALUES) - NumErased;
+    expected_result<size> expected;
+    expected.assign(0, size, values + NumErased, constructed_with::move_ctor);
+
+    SCOPED_TRACE("Erase at begin");
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto get_erase_pos = [](vector& v) { return v.begin(); };
+    test_erase_at(erase, get_erase_pos, expected);
+}
+
+template <std::size_t NumErased, typename Erase, typename... Args>
+void test_erase_at_end(Erase erase, Args&&... args) {
+    int const values[] = { TEST_VALUES };
+
+    constexpr std::size_t size = VA_NARGS(TEST_VALUES) - NumErased;
+    expected_result<size> expected;
+    expected.assign(0, size, values, constructed_with::skipped);
+
+    SCOPED_TRACE("Erase at end");
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto get_erase_pos = [](vector& v) { return v.end() - NumErased; };
+    test_erase_at(erase, get_erase_pos, expected);
+}
+
+template <std::size_t NumErased, typename Erase, typename... Args>
+void test_erase_at_middle(Erase erase, Args&&... args) {
+    int const values[] = { TEST_VALUES };
+
+    constexpr std::size_t size = VA_NARGS(TEST_VALUES) - NumErased;
+    expected_result<size> expected;
+    expected.assign(0, TEST_VALUES_ERASED_POS,
+                    values, constructed_with::skipped);
+    expected.assign(TEST_VALUES_ERASED_POS, size - TEST_VALUES_ERASED_POS,
+                    values + TEST_VALUES_ERASED_POS + NumErased, constructed_with::move_ctor);
+
+    SCOPED_TRACE("Erase at middle");
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto get_erase_pos = [](vector& v) { return v.begin() + TEST_VALUES_ERASED_POS; };
+    test_erase_at(erase, get_erase_pos, expected);
+}
+
+template <std::size_t NumErased, typename Erase, typename... Args>
+void test_erase(Erase erase, Args&&... args) {
+    test_erase_at_begin<NumErased>(erase, std::forward<Args>(args)...);
+    test_erase_at_end<NumErased>(erase, std::forward<Args>(args)...);
+    test_erase_at_middle<NumErased>(erase, std::forward<Args>(args)...);
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {
@@ -668,4 +736,13 @@ TEST_F(StaticVectorTest, EmplaceValue) {
     };
 
     test_insert<1>(insert, 0, inserted_value, constructed_with::value_ctor);
+}
+
+TEST_F(StaticVectorTest, EraseValue) {
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto erase = [](vector& v, typename vector::iterator it) {
+        return v.erase(it);
+    };
+
+    test_erase<1>(erase);
 }

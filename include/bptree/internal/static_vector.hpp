@@ -159,6 +159,7 @@ class static_vector {
     iterator emplace(const_iterator pos, Args&&... args);
     template <typename... Args>
     void emplace_back(Args&&... args);
+    iterator erase(const_iterator pos);
     void pop_back();
     void clear() noexcept;
 
@@ -413,6 +414,26 @@ inline void static_vector<T, N>::emplace_back(Args&&... args) {
     assert(size() < max_size());
     ::new(data() + size()) value_type(std::forward<Args>(args)...);
     ++size_;
+}
+
+template <typename T, std::size_t N>
+inline typename static_vector<T, N>::iterator static_vector<T, N>::erase(const_iterator pos) {
+    assert(pos >= cbegin());
+    assert(pos < cend());
+    assert(!empty());
+
+    auto offset = pos - cbegin();
+    auto ptr = data() + offset;
+    auto last = data() + size() - 1;
+    while (ptr != last) {
+        auto& prev = *ptr++;
+        prev = std::move(*ptr);
+    }
+
+    last->~value_type();
+    --size_;
+
+    return iterator(data() + offset);
 }
 
 template <typename T, std::size_t N>
