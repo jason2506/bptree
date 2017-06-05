@@ -746,3 +746,14 @@ TEST_F(StaticVectorTest, EraseValue) {
 
     test_erase<1>(erase);
 }
+
+TEST_F(StaticVectorTest, EraseRange) {
+    std::size_t constexpr num_erased = 3;
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto erase = [](vector& v, typename vector::iterator it) {
+        return v.erase(it, it + num_erased);
+    };
+
+    test_erase<num_erased>(erase);
+}
