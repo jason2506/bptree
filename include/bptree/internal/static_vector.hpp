@@ -432,6 +432,10 @@ static_vector<T, N>::erase(const_iterator first, const_iterator last) {
 
     auto offset = first - cbegin();
     auto count = last - first;
+    if (count == 0) {
+        return iterator(data() + offset);
+    }
+
     auto d_ptr = data() + offset;
     auto s_ptr = d_ptr + count;
     auto last_ptr = data() + size();

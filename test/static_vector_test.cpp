@@ -345,7 +345,8 @@ void test_erase_at_begin(Erase erase, Args&&... args) {
 
     constexpr std::size_t size = VA_NARGS(TEST_VALUES) - NumErased;
     expected_result<size> expected;
-    expected.assign(0, size, values + NumErased, constructed_with::move_ctor);
+    expected.assign(0, size, values + NumErased,
+                    NumErased > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Erase at begin");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
@@ -363,7 +364,7 @@ void test_erase_at_end(Erase erase, Args&&... args) {
 
     SCOPED_TRACE("Erase at end");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
-    auto get_erase_pos = [](vector& v) { return v.end() - NumErased; };
+    auto get_erase_pos = [](vector& v) { return v.end() - (NumErased == 0 ? 1 : NumErased); };
     test_erase_at(erase, get_erase_pos, expected);
 }
 
@@ -376,7 +377,8 @@ void test_erase_at_middle(Erase erase, Args&&... args) {
     expected.assign(0, TEST_VALUES_ERASED_POS,
                     values, constructed_with::skipped);
     expected.assign(TEST_VALUES_ERASED_POS, size - TEST_VALUES_ERASED_POS,
-                    values + TEST_VALUES_ERASED_POS + NumErased, constructed_with::move_ctor);
+                    values + TEST_VALUES_ERASED_POS + NumErased,
+                    NumErased > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Erase at middle");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
@@ -749,6 +751,17 @@ TEST_F(StaticVectorTest, EraseValue) {
 
 TEST_F(StaticVectorTest, EraseRange) {
     std::size_t constexpr num_erased = 3;
+
+    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    auto erase = [](vector& v, typename vector::iterator it) {
+        return v.erase(it, it + num_erased);
+    };
+
+    test_erase<num_erased>(erase);
+}
+
+TEST_F(StaticVectorTest, EraseEmptyRange) {
+    std::size_t constexpr num_erased = 0;
 
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto erase = [](vector& v, typename vector::iterator it) {
