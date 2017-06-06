@@ -273,7 +273,8 @@ void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, Args&&
     constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
     expected_result<size> expected;
     expected.assign(0, NumInserted, std::forward<Args>(args)...);
-    expected.assign(NumInserted, size - NumInserted, values, constructed_with::move_ctor);
+    expected.assign(NumInserted, size - NumInserted, values,
+                    NumInserted > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Insert at begin");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
@@ -309,7 +310,8 @@ void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, Args&
                     std::forward<Args>(args)...);
     expected.assign(TEST_VALUES_INSERTED_POS + NumInserted,
                     size - TEST_VALUES_INSERTED_POS - NumInserted,
-                    values_after, constructed_with::move_ctor);
+                    values_after,
+                    NumInserted > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Insert at middle");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
@@ -668,26 +670,10 @@ TEST_F(StaticVectorTest, InsertRepeatedValues) {
 TEST_F(StaticVectorTest, InsertNothing) {
     using vector = static_vector<custom_type, SIZE_VECTOR>;
     auto insert = [](vector& v, typename vector::iterator it) {
-        return v.insert(it, REPEAT_COUNT, custom_type(constructed_with::skipped, inserted_value));
+        return v.insert(it, 0, custom_type(constructed_with::skipped, inserted_value));
     };
 
-    int const values[] = { TEST_VALUES };
-    std::size_t const size = VA_NARGS(TEST_VALUES);
-    expected_result<size> expected(values, constructed_with::skipped);
-
-    for (std::size_t offset = 0; offset <= size; ++offset) {
-        std::ostringstream ss;
-        ss << "offset = " << offset;
-        SCOPED_TRACE(ss.str());
-
-        static_vector<custom_type, SIZE_VECTOR> v = { WRAP_VALUES(custom_type, TEST_VALUES) };
-        std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
-
-        v.insert(v.begin() + offset, 0, custom_type(constructed_with::skipped, inserted_value));
-
-        EXPECT_EQ(size * 2, custom_type::num_instances());
-        assert_static_vector_values(v, expected);
-    }
+    test_insert<0>(insert, 0, inserted_value, constructed_with::copy_ctor);
 }
 
 TEST_F(StaticVectorTest, InsertInputIteratorPair) {
