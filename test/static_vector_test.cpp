@@ -333,8 +333,8 @@ void test_erase_at(Erase erase, GetErasePos get_erase_pos, expected_result<N> co
     assert_static_vector_values(v, expected);
 }
 
-template <std::size_t NumErased, typename Erase, typename... Args>
-void test_erase_at_begin(Erase erase, Args&&... args) {
+template <std::size_t NumErased, typename Erase>
+void test_erase_at_begin(Erase erase) {
     expected_result<num_test_values - NumErased> expected(
         test_values + NumErased,
         NumErased > 0 ? constructed_with::move_ctor : constructed_with::skipped);
@@ -345,8 +345,8 @@ void test_erase_at_begin(Erase erase, Args&&... args) {
     test_erase_at(erase, get_erase_pos, expected);
 }
 
-template <std::size_t NumErased, typename Erase, typename... Args>
-void test_erase_at_end(Erase erase, Args&&... args) {
+template <std::size_t NumErased, typename Erase>
+void test_erase_at_end(Erase erase) {
     expected_result<num_test_values - NumErased> expected(test_values, constructed_with::skipped);
 
     SCOPED_TRACE("Erase at end");
@@ -355,8 +355,8 @@ void test_erase_at_end(Erase erase, Args&&... args) {
     test_erase_at(erase, get_erase_pos, expected);
 }
 
-template <std::size_t NumErased, typename Erase, typename... Args>
-void test_erase_at_middle(Erase erase, Args&&... args) {
+template <std::size_t NumErased, typename Erase>
+void test_erase_at_middle(Erase erase) {
     std::size_t constexpr size = num_test_values - NumErased;
     std::size_t const erase_pos = 2;
     assert(erase_pos < num_test_values - 1);
@@ -372,11 +372,11 @@ void test_erase_at_middle(Erase erase, Args&&... args) {
     test_erase_at(erase, get_erase_pos, expected);
 }
 
-template <std::size_t NumErased, typename Erase, typename... Args>
-void test_erase(Erase erase, Args&&... args) {
-    test_erase_at_begin<NumErased>(erase, std::forward<Args>(args)...);
-    test_erase_at_end<NumErased>(erase, std::forward<Args>(args)...);
-    test_erase_at_middle<NumErased>(erase, std::forward<Args>(args)...);
+template <std::size_t NumErased, typename Erase>
+void test_erase(Erase erase) {
+    test_erase_at_begin<NumErased>(erase);
+    test_erase_at_end<NumErased>(erase);
+    test_erase_at_middle<NumErased>(erase);
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {
