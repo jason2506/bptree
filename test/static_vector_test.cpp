@@ -47,8 +47,6 @@
 
 #define SIZE_VECTOR                     10
 #define REPEAT_COUNT                    3
-#define TEST_VALUES_INSERTED_POS        3
-#define TEST_VALUES_ERASED_POS          2
 #define TEST_VALUES                     1, 2, 3, 5, 8
 #define EXTRA_TEST_VALUES               13, 21, 34
 
@@ -297,19 +295,19 @@ void test_insert_at_end(Insert insert, std::size_t num_extra_instances, Args&&..
 
 template <std::size_t NumInserted, typename Insert, typename... Args>
 void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, Args&&... args) {
+    std::size_t const insert_pos = 3;
+    assert(insert_pos < num_test_values);
+
     expected_result<num_test_values + NumInserted> expected;
-    expected.assign(0, TEST_VALUES_INSERTED_POS,
-                    test_values, constructed_with::skipped);
-    expected.assign(TEST_VALUES_INSERTED_POS, NumInserted,
-                    std::forward<Args>(args)...);
-    expected.assign(TEST_VALUES_INSERTED_POS + NumInserted,
-                    num_test_values - TEST_VALUES_INSERTED_POS,
-                    test_values + TEST_VALUES_INSERTED_POS,
+    expected.assign(0, insert_pos, test_values, constructed_with::skipped);
+    expected.assign(insert_pos, NumInserted, std::forward<Args>(args)...);
+    expected.assign(insert_pos + NumInserted, num_test_values - insert_pos,
+                    test_values + insert_pos,
                     NumInserted > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Insert at middle");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
-    auto get_insert_pos = [](vector& v) { return v.begin() + TEST_VALUES_INSERTED_POS; };
+    auto get_insert_pos = [](vector& v) { return v.begin() + insert_pos; };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
 
@@ -360,16 +358,17 @@ void test_erase_at_end(Erase erase, Args&&... args) {
 template <std::size_t NumErased, typename Erase, typename... Args>
 void test_erase_at_middle(Erase erase, Args&&... args) {
     std::size_t constexpr size = num_test_values - NumErased;
+    std::size_t const erase_pos = 2;
+    assert(erase_pos < num_test_values - 1);
+
     expected_result<size> expected;
-    expected.assign(0, TEST_VALUES_ERASED_POS,
-                    test_values, constructed_with::skipped);
-    expected.assign(TEST_VALUES_ERASED_POS, size - TEST_VALUES_ERASED_POS,
-                    test_values + TEST_VALUES_ERASED_POS + NumErased,
+    expected.assign(0, erase_pos, test_values, constructed_with::skipped);
+    expected.assign(erase_pos, size - erase_pos, test_values + erase_pos + NumErased,
                     NumErased > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Erase at middle");
     using vector = static_vector<custom_type, SIZE_VECTOR>;
-    auto get_erase_pos = [](vector& v) { return v.begin() + TEST_VALUES_ERASED_POS; };
+    auto get_erase_pos = [](vector& v) { return v.begin() + erase_pos; };
     test_erase_at(erase, get_erase_pos, expected);
 }
 
