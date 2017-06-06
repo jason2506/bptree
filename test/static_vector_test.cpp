@@ -47,12 +47,9 @@
 
 #define SIZE_VECTOR                     10
 #define REPEAT_COUNT                    3
-#define TEST_VALUES_BEFORE_INSERTED_POS 1, 2, 3
-#define TEST_VALUES_AFTER_INSERTED_POS  5, 8
-#define TEST_VALUES_INSERTED_POS        VA_NARGS(TEST_VALUES_BEFORE_INSERTED_POS)
+#define TEST_VALUES_INSERTED_POS        3
 #define TEST_VALUES_ERASED_POS          2
-#define TEST_VALUES                     TEST_VALUES_BEFORE_INSERTED_POS, \
-                                        TEST_VALUES_AFTER_INSERTED_POS
+#define TEST_VALUES                     1, 2, 3, 5, 8
 #define EXTRA_TEST_VALUES               13, 21, 34
 
 using bptree::internal::static_vector;
@@ -299,18 +296,17 @@ void test_insert_at_end(Insert insert, std::size_t num_extra_instances, Args&&..
 
 template <std::size_t NumInserted, typename Insert, typename... Args>
 void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, Args&&... args) {
-    int const values_before[] = { TEST_VALUES_BEFORE_INSERTED_POS };
-    int const values_after[] = { TEST_VALUES_AFTER_INSERTED_POS };
+    int const values[] = { TEST_VALUES };
 
     constexpr std::size_t size = VA_NARGS(TEST_VALUES) + NumInserted;
     expected_result<size> expected;
     expected.assign(0, TEST_VALUES_INSERTED_POS,
-                    values_before, constructed_with::skipped);
+                    values, constructed_with::skipped);
     expected.assign(TEST_VALUES_INSERTED_POS, NumInserted,
                     std::forward<Args>(args)...);
     expected.assign(TEST_VALUES_INSERTED_POS + NumInserted,
                     size - TEST_VALUES_INSERTED_POS - NumInserted,
-                    values_after,
+                    values + TEST_VALUES_INSERTED_POS,
                     NumInserted > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Insert at middle");
