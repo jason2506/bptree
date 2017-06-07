@@ -45,7 +45,6 @@
 #define WRAP_VALUES_IMPL(n, wrap, ...)  WRAP_VALUES_IMPL_(n, wrap, __VA_ARGS__)
 #define WRAP_VALUES(wrap, ...)          { WRAP_VALUES_IMPL(VA_NARGS(__VA_ARGS__), wrap, __VA_ARGS__) }
 
-#define SIZE_VECTOR                     10
 #define TEST_VALUES                     1, 2, 3, 5, 8
 #define EXTRA_TEST_VALUES               13, 21, 34
 
@@ -222,6 +221,7 @@ std::size_t constexpr num_extra_test_values = VA_NARGS(EXTRA_TEST_VALUES);
 
 int const inserted_value = 99;
 std::size_t constexpr repeat_count = 3;
+std::size_t constexpr vector_size = 10;
 
 template <typename T, std::size_t N>
 void assert_static_vector_size(static_vector<T, N> const& v, std::size_t size) {
@@ -255,7 +255,7 @@ void assert_static_vector_values(static_vector<T, N> const& v, expected_result<M
 template <typename Insert, typename GetInsertPos, std::size_t N>
 void test_insert_at(Insert insert, GetInsertPos get_insert_pos,
                     std::size_t num_extra_instances, expected_result<N> const& expected) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     vector v = WRAP_VALUES(custom_type, TEST_VALUES);
     std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
 
@@ -276,7 +276,7 @@ void test_insert_at_begin(Insert insert, std::size_t num_extra_instances, Args&&
                     NumInserted > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Insert at begin");
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto get_insert_pos = [](vector& v) { return v.begin(); };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
@@ -288,7 +288,7 @@ void test_insert_at_end(Insert insert, std::size_t num_extra_instances, Args&&..
     expected.assign(num_test_values, NumInserted, std::forward<Args>(args)...);
 
     SCOPED_TRACE("Insert at end");
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto get_insert_pos = [](vector& v) { return v.end(); };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
@@ -306,7 +306,7 @@ void test_insert_at_middle(Insert insert, std::size_t num_extra_instances, Args&
                     NumInserted > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Insert at middle");
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto get_insert_pos = [](vector& v) { return v.begin() + insert_pos; };
     test_insert_at(insert, get_insert_pos, num_extra_instances, expected);
 }
@@ -320,7 +320,7 @@ void test_insert(Insert insert, std::size_t num_extra_instances, Args&&... args)
 
 template <typename Erase, typename GetErasePos, std::size_t N>
 void test_erase_at(Erase erase, GetErasePos get_erase_pos, expected_result<N> const& expected) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     vector v = WRAP_VALUES(custom_type, TEST_VALUES);
     std::for_each(v.begin(), v.end(), [](custom_type& item) { item.skip_ctor(); });
 
@@ -340,7 +340,7 @@ void test_erase_at_begin(Erase erase) {
         NumErased > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Erase at begin");
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto get_erase_pos = [](vector& v) { return v.begin(); };
     test_erase_at(erase, get_erase_pos, expected);
 }
@@ -350,7 +350,7 @@ void test_erase_at_end(Erase erase) {
     expected_result<num_test_values - NumErased> expected(test_values, constructed_with::skipped);
 
     SCOPED_TRACE("Erase at end");
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto get_erase_pos = [](vector& v) { return v.end() - (NumErased == 0 ? 1 : NumErased); };
     test_erase_at(erase, get_erase_pos, expected);
 }
@@ -367,7 +367,7 @@ void test_erase_at_middle(Erase erase) {
                     NumErased > 0 ? constructed_with::move_ctor : constructed_with::skipped);
 
     SCOPED_TRACE("Erase at middle");
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto get_erase_pos = [](vector& v) { return v.begin() + erase_pos; };
     test_erase_at(erase, get_erase_pos, expected);
 }
@@ -380,14 +380,14 @@ void test_erase(Erase erase) {
 }
 
 TEST_F(StaticVectorTest, EmptyVector) {
-    static_vector<custom_type, SIZE_VECTOR> v;
+    static_vector<custom_type, vector_size> v;
 
     EXPECT_EQ(0, custom_type::num_instances());
     assert_static_vector_size(v, 0);
 }
 
 TEST_F(StaticVectorTest, ConstructWithCount) {
-    static_vector<custom_type, SIZE_VECTOR> v(repeat_count);
+    static_vector<custom_type, vector_size> v(repeat_count);
 
     EXPECT_EQ(repeat_count, custom_type::num_instances());
     expected_result<repeat_count> expected(0, constructed_with::default_ctor);
@@ -395,22 +395,22 @@ TEST_F(StaticVectorTest, ConstructWithCount) {
 }
 
 TEST_F(StaticVectorTest, ConstructEmptyVector) {
-    static_vector<custom_type, SIZE_VECTOR> v(0);
+    static_vector<custom_type, vector_size> v(0);
 
     EXPECT_EQ(0, custom_type::num_instances());
     assert_static_vector_size(v, 0);
 }
 
 TEST_F(StaticVectorTest, ConstructFullVector) {
-    static_vector<custom_type, SIZE_VECTOR> v(SIZE_VECTOR);
+    static_vector<custom_type, vector_size> v(vector_size);
 
-    EXPECT_EQ(SIZE_VECTOR, custom_type::num_instances());
-    expected_result<SIZE_VECTOR> expected(0, constructed_with::default_ctor);
+    EXPECT_EQ(vector_size, custom_type::num_instances());
+    expected_result<vector_size> expected(0, constructed_with::default_ctor);
     assert_static_vector_values(v, expected);
 }
 
 TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
-    static_vector<custom_type, SIZE_VECTOR> v(repeat_count,
+    static_vector<custom_type, vector_size> v(repeat_count,
         custom_type(constructed_with::skipped, inserted_value));
 
     EXPECT_EQ(repeat_count, custom_type::num_instances());
@@ -420,7 +420,7 @@ TEST_F(StaticVectorTest, ConstructWithCountAndValue) {
 
 TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
     std::array<custom_type, num_test_values> arr = WRAP_VALUES(custom_type, TEST_VALUES);
-    static_vector<custom_type, SIZE_VECTOR> v(arr.begin(), arr.end());
+    static_vector<custom_type, vector_size> v(arr.begin(), arr.end());
 
     EXPECT_EQ(num_test_values * 2, custom_type::num_instances());
     expected_result<num_test_values> expected(test_values, constructed_with::copy_ctor);
@@ -428,7 +428,7 @@ TEST_F(StaticVectorTest, ConstructWithIteratorPair) {
 }
 
 TEST_F(StaticVectorTest, ConstructWithInitializerList) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
 
     EXPECT_EQ(num_test_values, custom_type::num_instances());
     expected_result<num_test_values> expected(test_values, constructed_with::copy_ctor);
@@ -436,7 +436,7 @@ TEST_F(StaticVectorTest, ConstructWithInitializerList) {
 }
 
 TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
-    static_vector<custom_type, SIZE_VECTOR> v1 = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v1 = WRAP_VALUES(custom_type, TEST_VALUES);
     decltype(v1) v2 = v1;
 
     EXPECT_EQ(num_test_values * 2, custom_type::num_instances());
@@ -446,7 +446,7 @@ TEST_F(StaticVectorTest, ConstructWithAnotherVector) {
 
 TEST_F(StaticVectorTest, DestructValues) {
     {
-        static_vector<custom_type, SIZE_VECTOR> v(3);
+        static_vector<custom_type, vector_size> v(3);
         EXPECT_EQ(3, custom_type::num_instances());
     }
 
@@ -454,7 +454,7 @@ TEST_F(StaticVectorTest, DestructValues) {
 }
 
 TEST_F(StaticVectorTest, ClearValues) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
 
     v.clear();
 
@@ -463,7 +463,7 @@ TEST_F(StaticVectorTest, ClearValues) {
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     v = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
 
     EXPECT_EQ(num_extra_test_values, custom_type::num_instances());
@@ -472,7 +472,7 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndInitializerList) {
 }
 
 TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
-    static_vector<custom_type, SIZE_VECTOR> v1 = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v1 = WRAP_VALUES(custom_type, TEST_VALUES);
     decltype(v1) v2 = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
     v1 = v2;
 
@@ -482,7 +482,7 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
 }
 
 TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     v.assign(repeat_count, custom_type(constructed_with::skipped, inserted_value));
 
     EXPECT_EQ(repeat_count, custom_type::num_instances());
@@ -491,7 +491,7 @@ TEST_F(StaticVectorTest, AssignWithMethodAndCountAndValues) {
 }
 
 TEST_F(StaticVectorTest, AssignWithMethodAndInitializerList) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     v.assign(WRAP_VALUES(custom_type, EXTRA_TEST_VALUES));
 
     EXPECT_EQ(num_extra_test_values, custom_type::num_instances());
@@ -500,7 +500,7 @@ TEST_F(StaticVectorTest, AssignWithMethodAndInitializerList) {
 }
 
 TEST_F(StaticVectorTest, AssignWithMethodAndIteratprPair) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     std::array<custom_type, num_extra_test_values> arr = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
     v.assign(arr.begin(), arr.end());
 
@@ -511,7 +511,7 @@ TEST_F(StaticVectorTest, AssignWithMethodAndIteratprPair) {
 
 TEST_F(StaticVectorTest, PushBackCopiedValue) {
     std::size_t const size = num_test_values + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
 
     custom_type item(constructed_with::skipped, inserted_value);
     v.push_back(item);
@@ -525,7 +525,7 @@ TEST_F(StaticVectorTest, PushBackCopiedValue) {
 
 TEST_F(StaticVectorTest, PushBackMovedValue) {
     std::size_t const size = num_test_values + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     v.push_back(custom_type(constructed_with::skipped, inserted_value));
 
     EXPECT_EQ(size, custom_type::num_instances());
@@ -537,7 +537,7 @@ TEST_F(StaticVectorTest, PushBackMovedValue) {
 
 TEST_F(StaticVectorTest, EmplaceBackValue) {
     std::size_t const size = num_test_values + 1;
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     v.emplace_back(inserted_value);
 
     EXPECT_EQ(size, custom_type::num_instances());
@@ -549,7 +549,7 @@ TEST_F(StaticVectorTest, EmplaceBackValue) {
 
 TEST_F(StaticVectorTest, PopBack) {
     std::size_t const size = num_test_values - 1;
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     v.pop_back();
 
     EXPECT_EQ(size, custom_type::num_instances());
@@ -558,10 +558,10 @@ TEST_F(StaticVectorTest, PopBack) {
 }
 
 TEST_F(StaticVectorTest, TraverseWithIterator) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
 
-    typename static_vector<custom_type, SIZE_VECTOR>::iterator it = v.begin();
-    typename static_vector<custom_type, SIZE_VECTOR>::const_iterator cit = v.cbegin();
+    typename static_vector<custom_type, vector_size>::iterator it = v.begin();
+    typename static_vector<custom_type, vector_size>::const_iterator cit = v.cbegin();
     for (std::size_t pos = 0; pos < num_test_values; ++pos, ++it, ++cit) {
         std::ostringstream ss;
         ss << "pos = " << pos;
@@ -576,10 +576,10 @@ TEST_F(StaticVectorTest, TraverseWithIterator) {
 }
 
 TEST_F(StaticVectorTest, TraverseWithReverseIterator) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
 
-    typename static_vector<custom_type, SIZE_VECTOR>::reverse_iterator rit = v.rbegin();
-    typename static_vector<custom_type, SIZE_VECTOR>::const_reverse_iterator crit = v.crbegin();
+    typename static_vector<custom_type, vector_size>::reverse_iterator rit = v.rbegin();
+    typename static_vector<custom_type, vector_size>::const_reverse_iterator crit = v.crbegin();
     for (std::size_t pos = num_test_values; pos > 0; --pos, ++rit, ++crit) {
         std::ostringstream ss;
         ss << "pos = " << pos;
@@ -594,17 +594,17 @@ TEST_F(StaticVectorTest, TraverseWithReverseIterator) {
 }
 
 TEST_F(StaticVectorTest, AccessFirstElement) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     EXPECT_EQ(v[0], v.front());
 }
 
 TEST_F(StaticVectorTest, AccessLastElement) {
-    static_vector<custom_type, SIZE_VECTOR> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
     EXPECT_EQ(v[v.size() - 1], v.back());
 }
 
 TEST_F(StaticVectorTest, InsertCopiedValue) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     custom_type item(constructed_with::skipped, inserted_value);
     auto insert = [&item](vector& v, typename vector::iterator it) {
         return v.insert(it, item);
@@ -614,7 +614,7 @@ TEST_F(StaticVectorTest, InsertCopiedValue) {
 }
 
 TEST_F(StaticVectorTest, InsertMovedValue) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [](vector& v, typename vector::iterator it) {
         return v.insert(it, custom_type(constructed_with::skipped, inserted_value));
     };
@@ -623,7 +623,7 @@ TEST_F(StaticVectorTest, InsertMovedValue) {
 }
 
 TEST_F(StaticVectorTest, InsertRepeatedValues) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [](vector& v, typename vector::iterator it) {
         return v.insert(it, repeat_count, custom_type(constructed_with::skipped, inserted_value));
     };
@@ -632,7 +632,7 @@ TEST_F(StaticVectorTest, InsertRepeatedValues) {
 }
 
 TEST_F(StaticVectorTest, InsertNothing) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [](vector& v, typename vector::iterator it) {
         return v.insert(it, 0, custom_type(constructed_with::skipped, inserted_value));
     };
@@ -648,7 +648,7 @@ TEST_F(StaticVectorTest, InsertInputIteratorPair) {
         typename std::array<custom_type, num_inserted>::iterator
     > first(arr.begin()), last(arr.end());
 
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [&first, &last](vector& v, typename vector::iterator it) {
         return v.insert(it, first, last);
     };
@@ -660,7 +660,7 @@ TEST_F(StaticVectorTest, InsertForwardIteratorPair) {
     std::size_t constexpr num_inserted = num_extra_test_values;
     std::array<custom_type, num_inserted> arr = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
 
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [&arr](vector& v, typename vector::iterator it) {
         return v.insert(it, arr.begin(), arr.end());
     };
@@ -669,7 +669,7 @@ TEST_F(StaticVectorTest, InsertForwardIteratorPair) {
 }
 
 TEST_F(StaticVectorTest, InsertInitializerList) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [](vector& v, typename vector::iterator it) {
         return v.insert(it, WRAP_VALUES(custom_type::skipped, EXTRA_TEST_VALUES));
     };
@@ -679,7 +679,7 @@ TEST_F(StaticVectorTest, InsertInitializerList) {
 }
 
 TEST_F(StaticVectorTest, EmplaceValue) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto insert = [](vector& v, typename vector::iterator it) {
         return v.emplace(it, inserted_value);
     };
@@ -688,7 +688,7 @@ TEST_F(StaticVectorTest, EmplaceValue) {
 }
 
 TEST_F(StaticVectorTest, EraseValue) {
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto erase = [](vector& v, typename vector::iterator it) {
         return v.erase(it);
     };
@@ -699,7 +699,7 @@ TEST_F(StaticVectorTest, EraseValue) {
 TEST_F(StaticVectorTest, EraseRange) {
     std::size_t constexpr num_erased = 3;
 
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto erase = [](vector& v, typename vector::iterator it) {
         return v.erase(it, it + num_erased);
     };
@@ -710,7 +710,7 @@ TEST_F(StaticVectorTest, EraseRange) {
 TEST_F(StaticVectorTest, EraseEmptyRange) {
     std::size_t constexpr num_erased = 0;
 
-    using vector = static_vector<custom_type, SIZE_VECTOR>;
+    using vector = static_vector<custom_type, vector_size>;
     auto erase = [](vector& v, typename vector::iterator it) {
         return v.erase(it, it + num_erased);
     };
