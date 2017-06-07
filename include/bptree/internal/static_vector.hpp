@@ -361,6 +361,8 @@ std::enable_if_t<
 >
 static_vector<T, N>::insert(const_iterator pos, ForwardIt first, ForwardIt last) {
     auto count = std::distance(first, last);
+    assert(size() + count <= max_size());
+
     auto offset = pos - cbegin();
     auto ptr = data() + offset;
     if (count == 0) {
@@ -412,7 +414,7 @@ static_vector<T, N>::emplace(const_iterator pos, Args&&... args) {
 template <typename T, std::size_t N>
 template <typename... Args>
 inline void static_vector<T, N>::emplace_back(Args&&... args) {
-    assert(size() < max_size());
+    assert(!full());
     ::new(data() + size()) value_type(std::forward<Args>(args)...);
     ++size_;
 }
@@ -426,7 +428,6 @@ template <typename T, std::size_t N>
 typename static_vector<T, N>::iterator
 static_vector<T, N>::erase(const_iterator first, const_iterator last) {
     assert(first >= cbegin());
-    assert(first < cend());
     assert(last >= first);
     assert(last <= cend());
 
@@ -455,7 +456,7 @@ static_vector<T, N>::erase(const_iterator first, const_iterator last) {
 
 template <typename T, std::size_t N>
 inline void static_vector<T, N>::pop_back() {
-    assert(size() > 0);
+    assert(!empty());
     at(size() - 1).~value_type();
     --size_;
 }
@@ -662,7 +663,7 @@ typename static_vector<T, N>::size_type
 static_vector<T, N>::reserve(const_iterator pos, size_type count) {
     assert(pos >= cbegin());
     assert(pos <= cend());
-    assert(!full());
+    assert(size() + count <= max_size());
 
     auto offset = pos - cbegin();
     auto ptr = data() + offset;
