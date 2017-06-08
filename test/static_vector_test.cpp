@@ -707,35 +707,14 @@ TEST_F(StaticVectorTest, EmplaceValue) {
     test_insert<1>(insert, 0, inserted_value, constructed_with::value_ctor);
 }
 
-TEST_F(StaticVectorTest, EraseValue) {
+TEST_F(StaticVectorTest, EraseValues) {
     using vector = static_vector<custom_type, vector_size>;
-    auto erase = [](vector& v, typename vector::iterator it) {
-        return v.erase(it);
-    };
-
-    test_erase<1>(erase);
-}
-
-TEST_F(StaticVectorTest, EraseRange) {
+    using vector_iterator = typename vector::iterator;
     std::size_t constexpr num_erased = 3;
-
-    using vector = static_vector<custom_type, vector_size>;
-    auto erase = [](vector& v, typename vector::iterator it) {
-        return v.erase(it, it + num_erased);
-    };
-
-    test_erase<num_erased>(erase);
-}
-
-TEST_F(StaticVectorTest, EraseEmptyRange) {
-    std::size_t constexpr num_erased = 0;
-
-    using vector = static_vector<custom_type, vector_size>;
-    auto erase = [](vector& v, typename vector::iterator it) {
-        return v.erase(it, it + num_erased);
-    };
-
-    test_erase<num_erased>(erase);
+    test_erase<1>([](vector& v, vector_iterator it) { return v.erase(it); });
+    test_erase<num_erased>([](vector& v, vector_iterator it)
+                           { return v.erase(it, it + num_erased); });
+    test_erase<0>([](vector& v, vector_iterator it) { return v.erase(it, it); });
 }
 
 TEST_F(StaticVectorTest, SwapValues) {
