@@ -12,9 +12,11 @@
 #include <cassert>
 #include <cstddef>
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 
 namespace bptree {
 
@@ -130,6 +132,7 @@ class static_vector {
     void assign(std::initializer_list<value_type> il);
     template <typename InputIt>
     void assign(InputIt first, InputIt last);
+    void swap(static_vector& other);
 
     iterator insert(const_iterator pos, value_type const& value);
     iterator insert(const_iterator pos, value_type&& value);
@@ -312,6 +315,32 @@ inline void static_vector<T, N>::assign(InputIt first, InputIt last) {
     auto ptr = std::uninitialized_copy(first, last, data());
     size_ = ptr - data();
     assert(size() <= max_size());
+}
+
+template <typename T, std::size_t N>
+void static_vector<T, N>::swap(static_vector& other) {
+    decltype(data()) short_first, short_last, long_first, long_mid, long_last;
+    if (size() < other.size()) {
+        short_first = data();
+        short_last = short_first + size();
+        long_first = other.data();
+        long_mid = long_first + size();
+        long_last = long_first + other.size();
+    } else {
+        short_first = other.data();
+        short_last = short_first + other.size();
+        long_first = data();
+        long_mid = long_first + other.size();
+        long_last = long_first + size();
+    }
+
+    std::swap_ranges(short_first, short_last, long_first);
+    for (; long_mid != long_last; ++long_mid, ++short_last) {
+        ::new(short_last) value_type(std::move(*long_mid));
+        long_mid->~value_type();
+    }
+
+    std::swap(size_, other.size_);
 }
 
 template <typename T, std::size_t N>
