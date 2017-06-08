@@ -710,16 +710,28 @@ TEST_F(StaticVectorTest, EmplaceValue) {
 TEST_F(StaticVectorTest, EraseValues) {
     using vector = static_vector<custom_type, vector_size>;
     using vector_iterator = typename vector::iterator;
-    std::size_t constexpr num_erased = 3;
+
+    SCOPED_TRACE("erase(it)");
     test_erase<1>([](vector& v, vector_iterator it) { return v.erase(it); });
+
+    SCOPED_TRACE("erase(it, it + num_erased)");
+    std::size_t constexpr num_erased = 3;
     test_erase<num_erased>([](vector& v, vector_iterator it)
                            { return v.erase(it, it + num_erased); });
+
+    SCOPED_TRACE("erase(it, it)");
     test_erase<0>([](vector& v, vector_iterator it) { return v.erase(it, it); });
 }
 
 TEST_F(StaticVectorTest, SwapValues) {
     using vector = static_vector<custom_type, vector_size>;
+
+    SCOPED_TRACE("v1.swap(v2)");
     test_swap([](vector& v1, vector& v2) { v1.swap(v2); });
+
+    SCOPED_TRACE("v2.swap(v1)");
     test_swap([](vector& v1, vector& v2) { v2.swap(v1); });
+
+    SCOPED_TRACE("std::swap(v1, v2)");
     test_swap([](vector& v1, vector& v2) { std::swap(v1, v2); });
 }
