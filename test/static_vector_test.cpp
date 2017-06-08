@@ -379,6 +379,26 @@ void test_erase(Erase erase) {
     test_erase_at_middle<NumErased>(erase);
 }
 
+template <typename Swap>
+void test_swap(Swap swap) {
+    using vector = static_vector<custom_type, vector_size>;
+    vector v1 = WRAP_VALUES(custom_type, TEST_VALUES);
+    vector v2 = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
+    std::for_each(v1.begin(), v1.end(), [](custom_type& item) { item.skip_ctor(); });
+    std::for_each(v2.begin(), v2.end(), [](custom_type& item) { item.skip_ctor(); });
+
+    swap(v1, v2);
+
+    EXPECT_EQ(num_test_values + num_extra_test_values, custom_type::num_instances());
+
+    expected_result<num_extra_test_values> expected1(extra_test_values,
+                                                     constructed_with::move_ctor);
+    assert_static_vector_values(v1, expected1);
+
+    expected_result<num_test_values> expected2(test_values, constructed_with::move_ctor);
+    assert_static_vector_values(v2, expected2);
+}
+
 TEST_F(StaticVectorTest, EmptyVector) {
     static_vector<custom_type, vector_size> v;
 
@@ -720,19 +740,6 @@ TEST_F(StaticVectorTest, EraseEmptyRange) {
 
 TEST_F(StaticVectorTest, SwapValues) {
     using vector = static_vector<custom_type, vector_size>;
-    vector v1 = WRAP_VALUES(custom_type, TEST_VALUES);
-    vector v2 = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
-    std::for_each(v1.begin(), v1.end(), [](custom_type& item) { item.skip_ctor(); });
-    std::for_each(v2.begin(), v2.end(), [](custom_type& item) { item.skip_ctor(); });
-
-    v1.swap(v2);
-
-    EXPECT_EQ(num_test_values + num_extra_test_values, custom_type::num_instances());
-
-    expected_result<num_extra_test_values> expected1(extra_test_values,
-                                                     constructed_with::move_ctor);
-    assert_static_vector_values(v1, expected1);
-
-    expected_result<num_test_values> expected2(test_values, constructed_with::move_ctor);
-    assert_static_vector_values(v2, expected2);
+    test_swap([](vector& v1, vector& v2) { v1.swap(v2); });
+    test_swap([](vector& v1, vector& v2) { v2.swap(v1); });
 }
