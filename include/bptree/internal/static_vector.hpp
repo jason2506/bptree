@@ -732,4 +732,18 @@ inline void static_vector<T, N>::assign_at(value_type* pos, Args&&... args) {
 
 }  // namespace bptree
 
+/************************************************
+ * Implementation: std::swap(static_vector<T, N>&, static_vector<T, N>&)
+ ************************************************/
+
+namespace std {
+
+template <typename T, std::size_t N>
+void swap(bptree::internal::static_vector<T, N>& v1,
+          bptree::internal::static_vector<T, N>& v2) {
+    v1.swap(v2);
+}
+
+}  // namespace std
+
 #endif  // BPTREE_INTERNAL_STATIC_VECTOR_HPP_

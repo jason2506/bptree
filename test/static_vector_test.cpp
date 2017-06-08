@@ -742,4 +742,5 @@ TEST_F(StaticVectorTest, SwapValues) {
     using vector = static_vector<custom_type, vector_size>;
     test_swap([](vector& v1, vector& v2) { v1.swap(v2); });
     test_swap([](vector& v1, vector& v2) { v2.swap(v1); });
+    test_swap([](vector& v1, vector& v2) { std::swap(v1, v2); });
 }
