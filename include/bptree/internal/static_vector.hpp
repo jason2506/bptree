@@ -13,6 +13,7 @@
 #include <cstddef>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
@@ -124,6 +125,7 @@ class static_vector {
     static_vector(InputIt first, InputIt last);
     static_vector(std::initializer_list<value_type> il);
     static_vector(static_vector const& other);
+    static_vector(static_vector&& other);
     ~static_vector();
 
     static_vector& operator=(std::initializer_list<value_type> il);
@@ -271,6 +273,13 @@ template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(static_vector const& other)
   : static_vector(other.data(), other.data() + other.size()) {
     // do nothing
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>::static_vector(static_vector&& other)
+  : static_vector(std::make_move_iterator(other.data()),
+                  std::make_move_iterator(other.data() + other.size())) {
+    other.clear();
 }
 
 template <typename T, std::size_t N>
