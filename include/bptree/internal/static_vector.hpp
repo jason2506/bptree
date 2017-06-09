@@ -130,6 +130,7 @@ class static_vector {
 
     static_vector& operator=(std::initializer_list<value_type> il);
     static_vector& operator=(static_vector const& other);
+    static_vector& operator=(static_vector&& other);
     void assign(size_type count, value_type const& value);
     void assign(std::initializer_list<value_type> il);
     template <typename InputIt>
@@ -296,6 +297,14 @@ inline static_vector<T, N>& static_vector<T, N>::operator=(std::initializer_list
 template <typename T, std::size_t N>
 inline static_vector<T, N>& static_vector<T, N>::operator=(static_vector const& other) {
     assign(other.data(), other.data() + other.size());
+    return *this;
+}
+
+template <typename T, std::size_t N>
+inline static_vector<T, N>& static_vector<T, N>::operator=(static_vector&& other) {
+    assign(std::make_move_iterator(other.data()),
+           std::make_move_iterator(other.data() + other.size()));
+    other.clear();
     return *this;
 }
 
