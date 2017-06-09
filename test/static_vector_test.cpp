@@ -747,13 +747,26 @@ TEST_F(StaticVectorTest, CompareValues) {
 
     // two empty vectors
     EXPECT_TRUE(v1 == v2); EXPECT_FALSE(v1 != v2);
+    EXPECT_FALSE(v1 < v2); EXPECT_TRUE(v1 <= v2);
+    EXPECT_FALSE(v1 > v2); EXPECT_TRUE(v1 >= v2);
 
     // two equal-length vector with exactly the same values
     EXPECT_TRUE(v3 == v4); EXPECT_FALSE(v3 != v4);
+    EXPECT_FALSE(v3 < v4); EXPECT_TRUE(v3 <= v4);
+    EXPECT_FALSE(v3 > v4); EXPECT_TRUE(v3 >= v4);
 
     // two equal-length vectors with different values
     EXPECT_FALSE(v4 == v5); EXPECT_TRUE(v4 != v5);
+    EXPECT_TRUE(v4 < v5); EXPECT_TRUE(v4 <= v5);
+    EXPECT_FALSE(v4 > v5); EXPECT_FALSE(v4 >= v5);
 
-    // two vectors with different sizes
+    // one vector is prefix of another vector
     EXPECT_FALSE(v4 == v6); EXPECT_TRUE(v4 != v6);
+    EXPECT_TRUE(v4 < v6); EXPECT_TRUE(v4 <= v6);
+    EXPECT_FALSE(v4 > v6); EXPECT_FALSE(v4 >= v6);
+
+    // shorter vector has larger value than longer one
+    EXPECT_FALSE(v5 == v6); EXPECT_TRUE(v5 != v6);
+    EXPECT_FALSE(v5 < v6); EXPECT_FALSE(v5 <= v6);
+    EXPECT_TRUE(v5 > v6); EXPECT_TRUE(v5 >= v6);
 }

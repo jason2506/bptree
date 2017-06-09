@@ -742,6 +742,33 @@ inline bool operator!=(static_vector<T, N> const& x, static_vector<T, N> const& 
     return !(x == y);
 }
 
+template <typename T, std::size_t N>
+bool operator>(static_vector<T, N> const& x, static_vector<T, N> const& y) {
+    auto x_first = x.begin(), y_first = y.begin();
+    auto x_last = x.end(), y_last = y.end();
+    for (; x_first != x_last && y_first != y_last; ++x_first, ++y_first) {
+        if (*x_first > *y_first) { return true; }
+        if (*x_first < *y_first) { return false; }
+    }
+
+    return x_first != x_last && y_first == y_last;
+}
+
+template <typename T, std::size_t N>
+inline bool operator<(static_vector<T, N> const& x, static_vector<T, N> const& y) {
+    return y > x;
+}
+
+template <typename T, std::size_t N>
+inline bool operator>=(static_vector<T, N> const& x, static_vector<T, N> const& y) {
+    return !(x < y);
+}
+
+template <typename T, std::size_t N>
+inline bool operator<=(static_vector<T, N> const& x, static_vector<T, N> const& y) {
+    return !(x > y);
+}
+
 }  // namespace internal
 
 }  // namespace bptree
