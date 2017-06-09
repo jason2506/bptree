@@ -735,3 +735,25 @@ TEST_F(StaticVectorTest, SwapValues) {
     SCOPED_TRACE("std::swap(v1, v2)");
     test_swap([](vector& v1, vector& v2) { std::swap(v1, v2); });
 }
+
+TEST_F(StaticVectorTest, CompareEquality) {
+    using vector = static_vector<int, vector_size>;
+
+    vector v1, v2;
+    vector v3(repeat_count);
+    vector v4(repeat_count);
+    vector v5(repeat_count, inserted_value);
+    vector v6(vector_size, inserted_value);
+
+    // two empty vectors
+    EXPECT_TRUE(v1 == v2); EXPECT_FALSE(v1 != v2);
+
+    // two equal-length vector with exactly the same values
+    EXPECT_TRUE(v3 == v4); EXPECT_FALSE(v3 != v4);
+
+    // two equal-length vectors with different values
+    EXPECT_FALSE(v4 == v5); EXPECT_TRUE(v4 != v5);
+
+    // two vectors with different sizes
+    EXPECT_FALSE(v4 == v6); EXPECT_TRUE(v4 != v6);
+}

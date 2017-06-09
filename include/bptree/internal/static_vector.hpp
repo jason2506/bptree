@@ -728,6 +728,20 @@ inline void static_vector<T, N>::assign_at(value_type* pos, Args&&... args) {
     *pos = value_type(std::forward<Args>(args)...);
 }
 
+/************************************************
+ * Implementation: comparison operators of static_vector<T, N>
+ ************************************************/
+
+template <typename T, std::size_t N>
+inline bool operator==(static_vector<T, N> const& x, static_vector<T, N> const& y) {
+    return x.size() == y.size() && std::equal(x.data(), x.data() + x.size(), y.data());
+}
+
+template <typename T, std::size_t N>
+inline bool operator!=(static_vector<T, N> const& x, static_vector<T, N> const& y) {
+    return !(x == y);
+}
+
 }  // namespace internal
 
 }  // namespace bptree
