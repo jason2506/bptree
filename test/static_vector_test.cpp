@@ -736,14 +736,14 @@ TEST_F(StaticVectorTest, SwapValues) {
     test_swap([](vector& v1, vector& v2) { std::swap(v1, v2); });
 }
 
-TEST_F(StaticVectorTest, CompareEquality) {
-    using vector = static_vector<int, vector_size>;
+TEST_F(StaticVectorTest, CompareValues) {
+    using vector = static_vector<int, 10>;
 
     vector v1, v2;
-    vector v3(repeat_count);
-    vector v4(repeat_count);
-    vector v5(repeat_count, inserted_value);
-    vector v6(vector_size, inserted_value);
+    vector v3 = {1, 2, 3};
+    vector v4 = {1, 2, 3};
+    vector v5 = {1, 2, 9};
+    vector v6 = {1, 2, 3, 4, 5};
 
     // two empty vectors
     EXPECT_TRUE(v1 == v2); EXPECT_FALSE(v1 != v2);
