@@ -203,11 +203,7 @@ class static_vector {
  private:  // Private Method(s)
     template <typename... Args>
     iterator emplace_with_count(const_iterator pos, size_type count, Args&&... args);
-    size_type reserve(const_iterator pos, size_type count);
-    void assign_at(value_type* pos, value_type const& value);
-    void assign_at(value_type* pos, value_type&& value);
-    template <typename... Args>
-    void assign_at(value_type* pos, Args&&... args);
+    void reserve(const_iterator pos, size_type count);
 
  private:  // Private Property(ies)
     size_type size_;
@@ -416,17 +412,12 @@ static_vector<T, N>::insert(const_iterator pos, ForwardIt first, ForwardIt last)
         return iterator(ptr);
     }
 
-    auto num_new_objs = reserve(pos, count);
-    offset = 0;
-    while (num_new_objs + offset < count) {
-        assign_at(ptr + offset, *first);
-        ++offset;
-        ++first;
-    }
+    reserve(pos, count);
 
+    auto d_first = ptr;
     while (first != last) {
-        ::new(ptr + offset) value_type(*first);
-        ++offset;
+        ::new(d_first) value_type(*first);
+        ++d_first;
         ++first;
     }
 
@@ -689,15 +680,10 @@ static_vector<T, N>::emplace_with_count(const_iterator pos, size_type count, Arg
         return iterator(ptr);
     }
 
-    auto num_new_objs = reserve(pos, count);
+    reserve(pos, count);
     auto d_last = ptr + count;
-    while (num_new_objs > 0) {
-        ::new(--d_last) value_type(std::forward<Args>(args)...);
-        --num_new_objs;
-    }
-
     while (ptr != d_last) {
-        assign_at(--d_last, std::forward<Args>(args)...);
+        ::new(--d_last) value_type(std::forward<Args>(args)...);
     }
 
     size_ += count;
@@ -706,8 +692,7 @@ static_vector<T, N>::emplace_with_count(const_iterator pos, size_type count, Arg
 }
 
 template <typename T, std::size_t N>
-typename static_vector<T, N>::size_type
-static_vector<T, N>::reserve(const_iterator pos, size_type count) {
+void static_vector<T, N>::reserve(const_iterator pos, size_type count) {
     assert(pos >= cbegin());
     assert(pos <= cend());
     assert(size() + count <= max_size());
@@ -716,34 +701,10 @@ static_vector<T, N>::reserve(const_iterator pos, size_type count) {
     auto ptr = data() + offset;
     auto last = data() + size();
     auto d_last = last + count;
-
-    auto num_new_objs = count;
     while (ptr != last) {
-        if (num_new_objs > 0) {
-            ::new(--d_last) value_type(std::move(*(--last)));
-            --num_new_objs;
-        } else {
-            *(--d_last) = std::move(*(--last));
-        }
+        ::new(--d_last) value_type(std::move(*(--last)));
+        last->~value_type();
     }
-
-    return num_new_objs;
-}
-
-template <typename T, std::size_t N>
-inline void static_vector<T, N>::assign_at(value_type* pos, value_type const& value) {
-    *pos = value;
-}
-
-template <typename T, std::size_t N>
-inline void static_vector<T, N>::assign_at(value_type* pos, value_type&& value) {
-    *pos = std::move(value);
-}
-
-template <typename T, std::size_t N>
-template <typename... Args>
-inline void static_vector<T, N>::assign_at(value_type* pos, Args&&... args) {
-    *pos = value_type(std::forward<Args>(args)...);
 }
 
 /************************************************
