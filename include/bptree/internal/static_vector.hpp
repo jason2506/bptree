@@ -479,7 +479,9 @@ static_vector<T, N>::erase(const_iterator first, const_iterator last) {
     auto s_ptr = d_ptr + count;
     auto last_ptr = data() + size();
     while (s_ptr != last_ptr) {
-        *d_ptr++ = std::move(*s_ptr++);
+        d_ptr->~value_type();
+        ::new(d_ptr) value_type(std::move(*s_ptr++));
+        ++d_ptr;
     }
 
     while (d_ptr != last_ptr) {
