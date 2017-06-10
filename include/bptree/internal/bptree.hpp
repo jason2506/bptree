@@ -38,7 +38,22 @@ class bptree {
     using const_pointer = value_type const*;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
+
+ public:  // Public Method(s)
+    bool empty() const noexcept;
+    size_type size() const noexcept;
 };
+
+template <typename K, typename T, std::size_t D, std::size_t N, typename C>
+bool bptree<K, T, D, N, C>::empty() const noexcept {
+    return true;
+}
+
+template <typename K, typename T, std::size_t D, std::size_t N, typename C>
+typename bptree<K, T, D, N, C>::size_type
+bptree<K, T, D, N, C>::size() const noexcept {
+    return 0;
+}
 
 }  // namespace internal
 

@@ -3,6 +3,7 @@ include(${PROJECT_SOURCE_DIR}/cmake/PatchFindGTest.cmake)
 
 set(${PROJECT_NAME}_TESTS
     static_vector_test
+    bptree_test
 )
 
 enable_testing()
