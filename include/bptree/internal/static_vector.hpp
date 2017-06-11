@@ -408,14 +408,7 @@ static_vector<T, N>::insert(const_iterator pos, ForwardIt first, ForwardIt last)
     }
 
     reserve(pos, count);
-
-    auto d_first = ptr;
-    while (first != last) {
-        ::new(d_first) value_type(*first);
-        ++d_first;
-        ++first;
-    }
-
+    std::uninitialized_copy(first, last, ptr);
     size_ += count;
 
     return iterator(ptr);
