@@ -244,10 +244,7 @@ template <typename T, std::size_t N>
 inline static_vector<T, N>::static_vector(size_type count, value_type const& value)
   : size_(count), data_() {
     assert(count <= max_size());
-
-    auto first = data();
-    auto last = first + size();
-    std::uninitialized_fill(first, last, value);
+    std::uninitialized_fill_n(data(), size(), value);
 }
 
 template <typename T, std::size_t N>
@@ -310,10 +307,8 @@ inline void static_vector<T, N>::assign(size_type count, value_type const& value
 
     clear();
 
-    auto first = data();
-    auto last = first + count;
     size_ = count;
-    std::uninitialized_fill(first, last, value);
+    std::uninitialized_fill_n(data(), count, value);
 }
 
 template <typename T, std::size_t N>
