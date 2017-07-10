@@ -55,9 +55,9 @@ class static_vector_iterator {
         { ++ptr_; return *this; }
     static_vector_iterator& operator--()
         { --ptr_; return *this; }
-    static_vector_iterator operator++(int) const
+    static_vector_iterator operator++(int)
         { static_vector_iterator it(*this); ++ptr_; return it; }
-    static_vector_iterator operator--(int) const
+    static_vector_iterator operator--(int)
         { static_vector_iterator it(*this); --ptr_; return it; }
 
     static_vector_iterator& operator+=(difference_type n)
