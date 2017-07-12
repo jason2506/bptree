@@ -6,8 +6,9 @@
  *  Distributed under MIT License
  ************************************************/
 
-#include <gtest/gtest.h>
+#include <functional>
 
+#include <gtest/gtest.h>
 
 #include <bptree/internal/assoc.hpp>
 #include <bptree/internal/map_traits.hpp>
@@ -37,4 +38,23 @@ TEST(AssocTest, EmptyAssoc) {
 
     EXPECT_TRUE(m.empty());
     EXPECT_EQ(0, m.size());
+}
+
+TEST(AssocTest, ConstructWithComp) {
+    using key = std::pair<double, double>;
+    auto compare = [](key const& lhs, key const& rhs) {
+        return (lhs.first - lhs.second) < (rhs.first - rhs.second);
+    };
+
+    using map = map<key, int, decltype(compare)>;
+    map m(compare);
+
+    map::key_compare key_comp = m.key_comp();
+    EXPECT_TRUE(key_comp({0.5, 0.3}, {0.7, 0.4}));
+    EXPECT_FALSE(key_comp({0.2, 0.1}, {0.3, 0.3}));
+
+    map::value_compare value_comp = m.value_comp();
+    EXPECT_TRUE(value_comp({{0.5, 0.3}, 'a'}, {{0.7, 0.4}, 'b'}));
+    EXPECT_FALSE(value_comp({{0.2, 0.1}, 'a'}, {{0.3, 0.3}, 'b'}));
+    EXPECT_FALSE(value_comp({{0, 0}, 'a'}, {{0, 0}, 'b'}));
 }

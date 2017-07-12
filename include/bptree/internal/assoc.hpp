@@ -9,6 +9,11 @@
 #ifndef BPTREE_INTERNAL_ASSOC_HPP_
 #define BPTREE_INTERNAL_ASSOC_HPP_
 
+#include <array>
+#include <functional>
+
+#include "./static_vector.hpp"
+
 namespace bptree {
 
 namespace internal {
@@ -43,9 +48,13 @@ class assoc
 
  public:  // Public Method(s)
     assoc();
+    explicit assoc(key_compare comp);
 
     bool empty() const noexcept;
     size_type size() const noexcept;
+
+    key_compare key_comp() const;
+    value_compare value_comp() const;
 };
 
 /************************************************
@@ -54,7 +63,13 @@ class assoc
 
 template <typename T, bool U, std::size_t D, std::size_t N, typename A>
 inline assoc<T, U, D, N, A>::assoc()
-  : value_compare(key_compare()) {
+  : assoc(key_compare()) {
+    // do nothing
+}
+
+template <typename T, bool U, std::size_t D, std::size_t N, typename A>
+inline assoc<T, U, D, N, A>::assoc(key_compare comp)
+  : value_compare(comp) {
     // do nothing
 }
 
@@ -66,6 +81,18 @@ inline bool assoc<T, U, D, N, A>::empty() const noexcept {
 template <typename T, bool U, std::size_t D, std::size_t N, typename A>
 inline typename assoc<T, U, D, N, A>::size_type assoc<T, U, D, N, A>::size() const noexcept {
     return 0;
+}
+
+template <typename T, bool U, std::size_t D, std::size_t N, typename A>
+inline typename assoc<T, U, D, N, A>::key_compare
+assoc<T, U, D, N, A>::key_comp() const {
+    return key_compare(*this);
+}
+
+template <typename T, bool U, std::size_t D, std::size_t N, typename A>
+inline typename assoc<T, U, D, N, A>::value_compare
+assoc<T, U, D, N, A>::value_comp() const {
+    return value_compare(*this);
 }
 
 }  // namespace internal
