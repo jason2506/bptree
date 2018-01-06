@@ -103,6 +103,10 @@ class static_assoc
     std::pair<iterator, bool> insert_uncheck(const_iterator pos, V&& value, std::true_type);
     template <typename V>
     iterator insert_uncheck(const_iterator pos, V&& value, std::false_type);
+    template <typename V>
+    iterator insert_hint_uncheck(const_iterator pos, V&& value, std::true_type);
+    template <typename V>
+    iterator insert_hint_uncheck(const_iterator pos, V&& value, std::false_type);
 
  private:  // Private Property(ies)
     underlying_type values_;
@@ -175,11 +179,7 @@ static_assoc<T, U, N>::emplace_hint(const_iterator hint, Args&&... args) {
         hint = std::upper_bound(hint + 1, last, value, value_comp());
     }
 
-    if (!U || hint == first || value_comp()(*(hint - 1), value)) {
-        return values_.insert(hint, std::move(value));
-    } else {
-        return begin() + (hint - first - 1);
-    }
+    return insert_hint_uncheck(hint, std::move(value), std::integral_constant<bool, U>());
 }
 
 template <typename T, bool U, std::size_t N>
@@ -315,6 +315,20 @@ template <typename V>
 inline typename static_assoc<T, U, N>::iterator
 static_assoc<T, U, N>::insert_uncheck(const_iterator pos, V&& value, std::false_type) {
     return values_.insert(pos, value);
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename V>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::insert_hint_uncheck(const_iterator pos, V&& value, std::true_type) {
+    return insert_uncheck(pos, value, std::true_type()).first;
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename V>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::insert_hint_uncheck(const_iterator pos, V&& value, std::false_type) {
+    return insert_uncheck(pos, value, std::false_type());
 }
 
 }  // namespace internal
