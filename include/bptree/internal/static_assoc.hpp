@@ -52,6 +52,7 @@ class static_assoc
     explicit static_assoc(key_compare comp);
     template <typename InputIt>
     static_assoc(InputIt first, InputIt last, key_compare const& comp = key_compare());
+    static_assoc(std::initializer_list<value_type> il, key_compare const& comp = key_compare());
 
     bool empty() const noexcept;
     bool full() const noexcept;
@@ -104,6 +105,13 @@ static_assoc<T, U, N>::static_assoc(InputIt first, InputIt last, key_compare con
         values_.insert(pos, *first);
         ++first;
     }
+}
+
+template <typename T, bool U, std::size_t N>
+inline static_assoc<T, U, N>::static_assoc(std::initializer_list<value_type> il,
+                                           key_compare const& comp)
+  : static_assoc(il.begin(), il.end(), comp) {
+    // do nothing
 }
 
 template <typename T, bool U, std::size_t N>
