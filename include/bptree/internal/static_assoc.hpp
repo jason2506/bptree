@@ -57,6 +57,19 @@ class static_assoc
     constexpr size_type max_size() const noexcept;
     constexpr size_type capacity() const noexcept;
 
+    iterator begin() noexcept;
+    const_iterator begin() const noexcept;
+    const_iterator cbegin() const noexcept;
+    iterator end() noexcept;
+    const_iterator end() const noexcept;
+    const_iterator cend() const noexcept;
+    reverse_iterator rbegin() noexcept;
+    const_reverse_iterator rbegin() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    reverse_iterator rend() noexcept;
+    const_reverse_iterator rend() const noexcept;
+    const_reverse_iterator crend() const noexcept;
+
     key_compare key_comp() const;
     value_compare value_comp() const;
 
@@ -106,6 +119,78 @@ template <typename T, bool U, std::size_t N>
 inline constexpr typename static_assoc<T, U, N>::size_type
 static_assoc<T, U, N>::capacity() const noexcept {
     return values_.capacity();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::begin() noexcept {
+    return values_.begin();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::begin() const noexcept {
+    return cbegin();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::cbegin() const noexcept {
+    return values_.cbegin();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::end() noexcept {
+    return values_.end();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::end() const noexcept {
+    return cend();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::cend() const noexcept {
+    return values_.cend();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::reverse_iterator
+static_assoc<T, U, N>::rbegin() noexcept {
+    return values_.rbegin();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_reverse_iterator
+static_assoc<T, U, N>::rbegin() const noexcept {
+    return crbegin();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_reverse_iterator
+static_assoc<T, U, N>::crbegin() const noexcept {
+    return values_.crbegin();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::reverse_iterator
+static_assoc<T, U, N>::rend() noexcept {
+    return values_.rend();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_reverse_iterator
+static_assoc<T, U, N>::rend() const noexcept {
+    return crend();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_reverse_iterator
+static_assoc<T, U, N>::crend() const noexcept {
+    return values_.crend();
 }
 
 template <typename T, bool U, std::size_t N>
