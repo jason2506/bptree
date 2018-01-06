@@ -188,13 +188,22 @@ TEST(StaticAssocTest, EmplaceSingleValue) {
         value_list.insert(value_list.end(), test_values.begin(), selected_it);
         value_list.insert(value_list.end(), selected_it + 1, test_values.end());
 
+        {
+            auto assoc_ptr = std::make_unique<test_map>(value_list.begin(), value_list.end());
+            auto result = assoc_ptr->emplace(*selected_it);
+
+            assert_assoc_values(*assoc_ptr, sorted_test_values);
+            EXPECT_EQ(test_value_type(*selected_it), *result.first);
+            EXPECT_TRUE(result.second);
+        }
+
         for (std::size_t hint_offset = 0; hint_offset < num_test_values; ++hint_offset) {
             std::ostringstream ss;
             ss << "selected_idx = " << selected_idx << "\thint_offset = " << hint_offset;
             SCOPED_TRACE(ss.str());
 
             // try to emplace selected value with hint (may be incorrect)
-            auto assoc_ptr = std::make_unique<test_multimap>(value_list.begin(), value_list.end());
+            auto assoc_ptr = std::make_unique<test_map>(value_list.begin(), value_list.end());
             auto it = assoc_ptr->emplace_hint(assoc_ptr->begin() + hint_offset, *selected_it);
 
             assert_assoc_values(*assoc_ptr, sorted_test_values);
@@ -204,6 +213,17 @@ TEST(StaticAssocTest, EmplaceSingleValue) {
 }
 
 TEST(StaticAssocTest, EmplaceValueWithDuplicatedKeyIntoMap) {
+    {
+        test_map map(test_values);
+        auto duplicated_it = map.begin() + duplicated_index;
+
+        auto result = map.emplace(duplicated_inserted_value);
+
+        EXPECT_EQ(duplicated_it, result.first);
+        EXPECT_FALSE(result.second);
+        assert_assoc_values(map, sorted_test_values);
+    }
+
     for (std::size_t hint_offset = 0; hint_offset < num_test_values; ++hint_offset) {
         std::ostringstream ss;
         ss << "hint_offset = " << hint_offset;
@@ -221,6 +241,16 @@ TEST(StaticAssocTest, EmplaceValueWithDuplicatedKeyIntoMap) {
 }
 
 TEST(StaticAssocTest, EmplaceValueWithDuplicatedKeyIntoMultiMap) {
+    {
+        test_multimap map(test_values);
+        auto duplicated_it = map.begin() + duplicated_index;
+
+        auto result = map.emplace(duplicated_inserted_value);
+
+        EXPECT_EQ(duplicated_it + 1, result);
+        assert_assoc_values(map, sorted_test_values_with_inserted_duplication);
+    }
+
     for (std::size_t hint_offset = 0; hint_offset < num_test_values; ++hint_offset) {
         std::ostringstream ss;
         ss << "hint_offset = " << hint_offset;

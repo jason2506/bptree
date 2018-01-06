@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <type_traits>
+#include <utility>
 
 #include "./static_vector.hpp"
 
@@ -31,6 +32,12 @@ class static_assoc
  private:  // Private Type(s)
     using value_traits = ValueTraits;
     using underlying_type = static_vector<typename value_traits::value_type, N>;
+
+    using insert_result_t = typename std::conditional<
+            Unique,
+            std::pair<typename underlying_type::iterator, bool>,
+            typename underlying_type::iterator
+        >::type;
 
  public:  // Public Type(s)
     using key_type = typename value_traits::key_type;
@@ -64,6 +71,8 @@ class static_assoc
     static_assoc& operator=(static_assoc&&) = default;
 
     template <typename... Args>
+    insert_result_t emplace(Args&&... args);
+    template <typename... Args>
     iterator emplace_hint(const_iterator hint, Args&&... args);
     void clear() noexcept;
 
@@ -88,6 +97,12 @@ class static_assoc
 
     key_compare key_comp() const;
     value_compare value_comp() const;
+
+ private:  // Private Method(s)
+    template <typename V>
+    std::pair<iterator, bool> insert_uncheck(const_iterator pos, V&& value, std::true_type);
+    template <typename V>
+    iterator insert_uncheck(const_iterator pos, V&& value, std::false_type);
 
  private:  // Private Property(ies)
     underlying_type values_;
@@ -136,6 +151,15 @@ static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
     }
 
     return *this;
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename... Args>
+typename static_assoc<T, U, N>::insert_result_t
+static_assoc<T, U, N>::emplace(Args&&... args) {
+    value_type value(std::forward<Args>(args)...);
+    auto it = std::upper_bound(cbegin(), cend(), value, value_comp());
+    return insert_uncheck(it, std::move(value), std::integral_constant<bool, U>());
 }
 
 template <typename T, bool U, std::size_t N>
@@ -273,6 +297,24 @@ template <typename T, bool U, std::size_t N>
 inline typename static_assoc<T, U, N>::value_compare
 static_assoc<T, U, N>::value_comp() const {
     return value_compare(*this);
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename V>
+std::pair<typename static_assoc<T, U, N>::iterator, bool>
+static_assoc<T, U, N>::insert_uncheck(const_iterator pos, V&& value, std::true_type) {
+    if (pos == cbegin() || value_comp()(*(pos - 1), value)) {
+        return {values_.insert(pos, value), true};
+    } else {
+        return {begin() + (pos - cbegin() - 1), false};
+    }
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename V>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::insert_uncheck(const_iterator pos, V&& value, std::false_type) {
+    return values_.insert(pos, value);
 }
 
 }  // namespace internal
