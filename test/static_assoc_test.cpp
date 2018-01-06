@@ -107,3 +107,8 @@ TEST(StaticAssocTest, ConstructWithSortedValues) {
     test_map map(sorted_test_values.begin(), sorted_test_values.end());
     assert_assoc_values(map, sorted_test_values);
 }
+
+TEST(StaticAssocTest, ConstructWithUnsortedValues) {
+    test_map map(test_values.begin(), test_values.end());
+    assert_assoc_values(map, sorted_test_values);
+}

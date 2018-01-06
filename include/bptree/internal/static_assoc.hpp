@@ -98,8 +98,12 @@ inline static_assoc<T, U, N>::static_assoc(key_compare comp)
 template <typename T, bool U, std::size_t N>
 template <typename InputIt>
 static_assoc<T, U, N>::static_assoc(InputIt first, InputIt last, key_compare const& comp)
-  : value_compare(comp), values_(first, last) {
-    // do nothing
+  : static_assoc(comp) {
+    while (first != last) {
+        auto pos = std::upper_bound(values_.cbegin(), values_.cend(), *first, value_comp());
+        values_.insert(pos, *first);
+        ++first;
+    }
 }
 
 template <typename T, bool U, std::size_t N>
