@@ -34,7 +34,7 @@ using static_multiset = static_assoc<set_traits<T, Compare>, false, N>;
 
 std::size_t constexpr assoc_size = 10;
 
-TEST(StaticAssocBaseTest, EmptyAssoc) {
+TEST(StaticAssocTest, EmptyAssoc) {
     static_map<int, char, assoc_size> map;
 
     EXPECT_TRUE(map.empty());
@@ -52,4 +52,22 @@ TEST(StaticAssocBaseTest, EmptyAssoc) {
     EXPECT_TRUE(value_comp({1, 'a'}, {2, 'b'}));
     EXPECT_FALSE(value_comp({2, 'b'}, {1, 'a'}));
     EXPECT_FALSE(value_comp({2, 'a'}, {1, 'b'}));
+}
+
+TEST(StaticAssocTest, ConstructWithComp) {
+    using key = std::pair<double, double>;
+    auto compare = [](key const& lhs, key const& rhs) {
+        return (lhs.first - lhs.second) < (rhs.first - rhs.second);
+    };
+
+    static_map<key, char, assoc_size, decltype(compare)> map(compare);
+
+    auto key_comp = map.key_comp();
+    EXPECT_TRUE(key_comp({0.5, 0.3}, {0.7, 0.4}));
+    EXPECT_FALSE(key_comp({0.2, 0.1}, {0.3, 0.3}));
+
+    auto value_comp = map.value_comp();
+    EXPECT_TRUE(value_comp({{0.5, 0.3}, 'a'}, {{0.7, 0.4}, 'b'}));
+    EXPECT_FALSE(value_comp({{0.2, 0.1}, 'a'}, {{0.3, 0.3}, 'b'}));
+    EXPECT_FALSE(value_comp({{0, 0}, 'a'}, {{0, 0}, 'b'}));
 }

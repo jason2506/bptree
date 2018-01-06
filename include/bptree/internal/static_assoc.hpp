@@ -49,6 +49,7 @@ class static_assoc
 
  public:  // Public Method(s)
     static_assoc();
+    explicit static_assoc(key_compare comp);
 
     bool empty() const noexcept;
     bool full() const noexcept;
@@ -69,7 +70,13 @@ class static_assoc
 
 template <typename T, bool U, std::size_t N>
 inline static_assoc<T, U, N>::static_assoc()
-  : value_compare(key_compare()), values_() {
+  : static_assoc(key_compare()) {
+    // do nothing
+}
+
+template <typename T, bool U, std::size_t N>
+inline static_assoc<T, U, N>::static_assoc(key_compare comp)
+  : value_compare(comp), values_() {
     // do nothing
 }
 
