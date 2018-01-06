@@ -56,6 +56,8 @@ class static_assoc
     static_assoc(static_assoc const&) = default;
     static_assoc(static_assoc&&) = default;
 
+    static_assoc& operator=(std::initializer_list<value_type> il);
+
     bool empty() const noexcept;
     bool full() const noexcept;
     size_type size() const noexcept;
@@ -120,6 +122,21 @@ inline static_assoc<T, U, N>::static_assoc(std::initializer_list<value_type> il,
                                            key_compare const& comp)
   : static_assoc(il.begin(), il.end(), comp) {
     // do nothing
+}
+
+template <typename T, bool U, std::size_t N>
+static_assoc<T, U, N>&
+static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
+    values_.clear();
+
+    for (auto& value : il) {
+        auto pos = std::upper_bound(values_.cbegin(), values_.cend(), value, value_comp());
+        if (!U || pos == begin() || !is_equal(*(pos - 1), value)) {
+            values_.insert(pos, value);
+        }
+    }
+
+    return *this;
 }
 
 template <typename T, bool U, std::size_t N>

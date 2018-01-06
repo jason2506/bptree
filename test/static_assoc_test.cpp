@@ -76,6 +76,12 @@ test_value_list constexpr sorted_test_values_without_duplications = {
     test_value_type(2, 'a')
 };
 
+test_value_list constexpr extra_test_values = {
+    test_value_type(8, 'f'),
+    test_value_type(2, 'g'),
+    test_value_type(4, 'h')
+};
+
 template <typename Assoc, typename ValueList>
 void assert_assoc_values(Assoc const& assoc, ValueList list) {
     auto map_it = assoc.begin();
@@ -148,4 +154,10 @@ TEST(StaticAssocTest, ConstructMapWithDuplicatedKeys) {
 TEST(StaticAssocTest, ConstructMultiMapWithDuplicatedKeys) {
     test_multimap map(test_values_with_duplications);
     assert_assoc_values(map, sorted_test_values_with_duplications);
+}
+
+TEST(StaticAssocTest, AssignToInitializerList) {
+    test_map map(extra_test_values);
+    map = test_values;
+    assert_assoc_values(map, sorted_test_values);
 }
