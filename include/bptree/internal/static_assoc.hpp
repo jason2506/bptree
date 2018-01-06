@@ -57,6 +57,8 @@ class static_assoc
     static_assoc(static_assoc&&) = default;
 
     static_assoc& operator=(std::initializer_list<value_type> il);
+    static_assoc& operator=(static_assoc const&) = default;
+    static_assoc& operator=(static_assoc&&) = default;
 
     void clear() noexcept;
 
