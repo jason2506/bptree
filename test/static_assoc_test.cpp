@@ -9,6 +9,9 @@
 #include <cstddef>
 
 #include <algorithm>
+#include <list>
+#include <memory>
+#include <sstream>
 
 #include <gtest/gtest.h>
 
@@ -81,6 +84,8 @@ test_value_list constexpr extra_test_values = {
     test_value_type(2, 'g'),
     test_value_type(4, 'h')
 };
+
+std::size_t constexpr num_test_values = test_values.size();
 
 template <typename Assoc, typename ValueList>
 void assert_assoc_values(Assoc const& assoc, ValueList list) {
@@ -160,4 +165,27 @@ TEST(StaticAssocTest, AssignToInitializerList) {
     test_map map(extra_test_values);
     map = test_values;
     assert_assoc_values(map, sorted_test_values);
+}
+
+TEST(StaticAssocTest, EmplaceSingleValue) {
+    for (std::size_t selected_idx = 0; selected_idx < num_test_values; ++selected_idx) {
+        // construct `value_list` with `test_values` except for value at `selected_idx`
+        auto selected_it = test_values.begin() + selected_idx;
+        std::list<test_value_type> value_list;
+        value_list.insert(value_list.end(), test_values.begin(), selected_it);
+        value_list.insert(value_list.end(), selected_it + 1, test_values.end());
+
+        for (std::size_t hint_offset = 0; hint_offset < num_test_values; ++hint_offset) {
+            std::ostringstream ss;
+            ss << "selected_idx = " << selected_idx << "\thint_offset = " << hint_offset;
+            SCOPED_TRACE(ss.str());
+
+            // try to emplace selected value with hint (may be incorrect)
+            auto assoc_ptr = std::make_unique<test_multimap>(value_list.begin(), value_list.end());
+            auto it = assoc_ptr->emplace_hint(assoc_ptr->begin() + hint_offset, *selected_it);
+
+            assert_assoc_values(*assoc_ptr, sorted_test_values);
+            EXPECT_EQ(test_value_type(*selected_it), *it);
+        }
+    }
 }

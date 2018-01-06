@@ -11,6 +11,9 @@
 
 #include <cstddef>
 
+#include <algorithm>
+#include <type_traits>
+
 #include "./static_vector.hpp"
 
 namespace bptree {
@@ -60,6 +63,8 @@ class static_assoc
     static_assoc& operator=(static_assoc const&) = default;
     static_assoc& operator=(static_assoc&&) = default;
 
+    template <typename... Args>
+    iterator emplace_hint(const_iterator hint, Args&&... args);
     void clear() noexcept;
 
     bool empty() const noexcept;
@@ -141,6 +146,22 @@ static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
     }
 
     return *this;
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename... Args>
+typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::emplace_hint(const_iterator hint, Args&&... args) {
+    value_type value(std::forward<Args>(args)...);
+    auto first = cbegin();
+    auto last = cend();
+    if (hint != first && value_compare::operator()(value, *(hint - 1))) {
+        hint = std::upper_bound(first, hint, value, value_comp());
+    } else if (hint != last && !value_compare::operator()(value, *hint)) {
+        hint = std::upper_bound(hint + 1, last, value, value_comp());
+    }
+
+    return values_.insert(hint, std::move(value));
 }
 
 template <typename T, bool U, std::size_t N>
