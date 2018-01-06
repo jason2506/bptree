@@ -34,6 +34,37 @@ using static_multiset = static_assoc<set_traits<T, Compare>, false, N>;
 
 std::size_t constexpr assoc_size = 10;
 
+using test_map = static_map<int, char, assoc_size>;
+using test_value_type = typename test_map::value_type;
+using test_value_list = std::initializer_list<test_value_type>;
+
+test_value_list constexpr test_values = {
+    test_value_type(6, 'a'),
+    test_value_type(1, 'b'),
+    test_value_type(5, 'c'),
+    test_value_type(7, 'd'),
+    test_value_type(3, 'e')
+};
+
+test_value_list constexpr sorted_test_values = {
+    test_value_type(1, 'b'),
+    test_value_type(3, 'e'),
+    test_value_type(5, 'c'),
+    test_value_type(6, 'a'),
+    test_value_type(7, 'd')
+};
+
+template <typename Assoc, typename ValueList>
+void assert_assoc_values(Assoc const& assoc, ValueList list) {
+    auto map_it = assoc.begin();
+    auto expected_it = list.begin();
+    while (expected_it != list.end()) {
+        EXPECT_EQ(*expected_it++, *map_it++);
+    }
+
+    EXPECT_EQ(assoc.end(), map_it);
+}
+
 TEST(StaticAssocTest, EmptyAssoc) {
     static_map<int, char, assoc_size> map;
 
@@ -70,4 +101,9 @@ TEST(StaticAssocTest, ConstructWithComp) {
     EXPECT_TRUE(value_comp({{0.5, 0.3}, 'a'}, {{0.7, 0.4}, 'b'}));
     EXPECT_FALSE(value_comp({{0.2, 0.1}, 'a'}, {{0.3, 0.3}, 'b'}));
     EXPECT_FALSE(value_comp({{0, 0}, 'a'}, {{0, 0}, 'b'}));
+}
+
+TEST(StaticAssocTest, ConstructWithSortedValues) {
+    test_map map(sorted_test_values.begin(), sorted_test_values.end());
+    assert_assoc_values(map, sorted_test_values);
 }
