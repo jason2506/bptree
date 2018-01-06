@@ -161,7 +161,11 @@ static_assoc<T, U, N>::emplace_hint(const_iterator hint, Args&&... args) {
         hint = std::upper_bound(hint + 1, last, value, value_comp());
     }
 
-    return values_.insert(hint, std::move(value));
+    if (!U || hint == first || value_comp()(*(hint - 1), value)) {
+        return values_.insert(hint, std::move(value));
+    } else {
+        return begin() + (hint - first - 1);
+    }
 }
 
 template <typename T, bool U, std::size_t N>

@@ -12,6 +12,7 @@
 #include <list>
 #include <memory>
 #include <sstream>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
@@ -55,6 +56,18 @@ test_value_list constexpr sorted_test_values = {
     test_value_type(3, 'e'),
     test_value_type(5, 'c'),
     test_value_type(6, 'a'),
+    test_value_type(7, 'd')
+};
+
+test_value_type constexpr duplicated_inserted_value(6, 'x');
+std::size_t constexpr duplicated_index = 3;
+
+test_value_list constexpr sorted_test_values_with_inserted_duplication = {
+    test_value_type(1, 'b'),
+    test_value_type(3, 'e'),
+    test_value_type(5, 'c'),
+    test_value_type(6, 'a'),
+    duplicated_inserted_value,
     test_value_type(7, 'd')
 };
 
@@ -187,5 +200,39 @@ TEST(StaticAssocTest, EmplaceSingleValue) {
             assert_assoc_values(*assoc_ptr, sorted_test_values);
             EXPECT_EQ(test_value_type(*selected_it), *it);
         }
+    }
+}
+
+TEST(StaticAssocTest, EmplaceValueWithDuplicatedKeyIntoMap) {
+    for (std::size_t hint_offset = 0; hint_offset < num_test_values; ++hint_offset) {
+        std::ostringstream ss;
+        ss << "hint_offset = " << hint_offset;
+        SCOPED_TRACE(ss.str());
+
+        // try to emplace selected value with hint (may be incorrect)
+        test_map map(test_values);
+        auto duplicated_it = map.begin() + duplicated_index;
+
+        auto it = map.emplace_hint(map.begin() + hint_offset, duplicated_inserted_value);
+
+        EXPECT_EQ(duplicated_it, it);
+        assert_assoc_values(map, sorted_test_values);
+    }
+}
+
+TEST(StaticAssocTest, EmplaceValueWithDuplicatedKeyIntoMultiMap) {
+    for (std::size_t hint_offset = 0; hint_offset < num_test_values; ++hint_offset) {
+        std::ostringstream ss;
+        ss << "hint_offset = " << hint_offset;
+        SCOPED_TRACE(ss.str());
+
+        // try to emplace selected value with hint (may be incorrect)
+        test_multimap map(test_values);
+        auto duplicated_it = map.begin() + duplicated_index;
+
+        auto it = map.emplace_hint(map.begin() + hint_offset, duplicated_inserted_value);
+
+        EXPECT_EQ(duplicated_it + 1, it);
+        assert_assoc_values(map, sorted_test_values_with_inserted_duplication);
     }
 }
