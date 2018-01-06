@@ -50,6 +50,12 @@ class static_assoc
  public:  // Public Method(s)
     static_assoc();
 
+    bool empty() const noexcept;
+    bool full() const noexcept;
+    size_type size() const noexcept;
+    constexpr size_type max_size() const noexcept;
+    constexpr size_type capacity() const noexcept;
+
  private:  // Private Property(ies)
     underlying_type values_;
 };
@@ -62,6 +68,34 @@ template <typename T, bool U, std::size_t N>
 inline static_assoc<T, U, N>::static_assoc()
   : value_compare(key_compare()), values_() {
     // do nothing
+}
+
+template <typename T, bool U, std::size_t N>
+inline bool static_assoc<T, U, N>::empty() const noexcept {
+    return values_.empty();
+}
+
+template <typename T, bool U, std::size_t N>
+inline bool static_assoc<T, U, N>::full() const noexcept {
+    return values_.full();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::size_type
+static_assoc<T, U, N>::size() const noexcept {
+    return values_.size();
+}
+
+template <typename T, bool U, std::size_t N>
+inline constexpr typename static_assoc<T, U, N>::size_type
+static_assoc<T, U, N>::max_size() const noexcept {
+    return values_.max_size();
+}
+
+template <typename T, bool U, std::size_t N>
+inline constexpr typename static_assoc<T, U, N>::size_type
+static_assoc<T, U, N>::capacity() const noexcept {
+    return values_.capacity();
 }
 
 }  // namespace internal

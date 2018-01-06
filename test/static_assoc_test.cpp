@@ -36,4 +36,10 @@ std::size_t constexpr assoc_size = 10;
 
 TEST(StaticAssocBaseTest, EmptyAssoc) {
     static_map<int, char, assoc_size> map;
+
+    EXPECT_TRUE(map.empty());
+    EXPECT_FALSE(map.full());
+    EXPECT_EQ(0, map.size());
+    EXPECT_EQ(assoc_size, map.max_size());
+    EXPECT_EQ(assoc_size, map.capacity());
 }
