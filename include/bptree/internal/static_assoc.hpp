@@ -56,6 +56,9 @@ class static_assoc
     constexpr size_type max_size() const noexcept;
     constexpr size_type capacity() const noexcept;
 
+    key_compare key_comp() const;
+    value_compare value_comp() const;
+
  private:  // Private Property(ies)
     underlying_type values_;
 };
@@ -96,6 +99,18 @@ template <typename T, bool U, std::size_t N>
 inline constexpr typename static_assoc<T, U, N>::size_type
 static_assoc<T, U, N>::capacity() const noexcept {
     return values_.capacity();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::key_compare
+static_assoc<T, U, N>::key_comp() const {
+    return key_compare(*this);
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::value_compare
+static_assoc<T, U, N>::value_comp() const {
+    return value_compare(*this);
 }
 
 }  // namespace internal

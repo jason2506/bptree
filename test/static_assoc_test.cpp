@@ -42,4 +42,14 @@ TEST(StaticAssocBaseTest, EmptyAssoc) {
     EXPECT_EQ(0, map.size());
     EXPECT_EQ(assoc_size, map.max_size());
     EXPECT_EQ(assoc_size, map.capacity());
+
+    auto key_comp = map.key_comp();
+    EXPECT_TRUE(key_comp(1, 3));
+    EXPECT_FALSE(key_comp(3, 1));
+    EXPECT_FALSE(key_comp(2, 2));
+
+    auto value_comp = map.value_comp();
+    EXPECT_TRUE(value_comp({1, 'a'}, {2, 'b'}));
+    EXPECT_FALSE(value_comp({2, 'b'}, {1, 'a'}));
+    EXPECT_FALSE(value_comp({2, 'a'}, {1, 'b'}));
 }
