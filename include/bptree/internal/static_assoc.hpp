@@ -58,6 +58,8 @@ class static_assoc
 
     static_assoc& operator=(std::initializer_list<value_type> il);
 
+    void clear() noexcept;
+
     bool empty() const noexcept;
     bool full() const noexcept;
     size_type size() const noexcept;
@@ -127,7 +129,7 @@ inline static_assoc<T, U, N>::static_assoc(std::initializer_list<value_type> il,
 template <typename T, bool U, std::size_t N>
 static_assoc<T, U, N>&
 static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
-    values_.clear();
+    clear();
 
     for (auto& value : il) {
         auto pos = std::upper_bound(values_.cbegin(), values_.cend(), value, value_comp());
@@ -137,6 +139,11 @@ static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
     }
 
     return *this;
+}
+
+template <typename T, bool U, std::size_t N>
+inline void static_assoc<T, U, N>::clear() noexcept {
+    values_.clear();
 }
 
 template <typename T, bool U, std::size_t N>
