@@ -35,6 +35,7 @@ using static_multiset = static_assoc<set_traits<T, Compare>, false, N>;
 std::size_t constexpr assoc_size = 10;
 
 using test_map = static_map<int, char, assoc_size>;
+using test_multimap = static_multimap<int, char, assoc_size>;
 using test_value_type = typename test_map::value_type;
 using test_value_list = std::initializer_list<test_value_type>;
 
@@ -52,6 +53,27 @@ test_value_list constexpr sorted_test_values = {
     test_value_type(5, 'c'),
     test_value_type(6, 'a'),
     test_value_type(7, 'd')
+};
+
+test_value_list constexpr test_values_with_duplications = {
+    test_value_type(2, 'a'),
+    test_value_type(2, 'b'),
+    test_value_type(1, 'c'),
+    test_value_type(2, 'd'),
+    test_value_type(1, 'e')
+};
+
+test_value_list constexpr sorted_test_values_with_duplications = {
+    test_value_type(1, 'c'),
+    test_value_type(1, 'e'),
+    test_value_type(2, 'a'),
+    test_value_type(2, 'b'),
+    test_value_type(2, 'd')
+};
+
+test_value_list constexpr sorted_test_values_without_duplications = {
+    test_value_type(1, 'c'),
+    test_value_type(2, 'a')
 };
 
 template <typename Assoc, typename ValueList>
@@ -116,4 +138,14 @@ TEST(StaticAssocTest, ConstructWithUnsortedValues) {
 TEST(StaticAssocTest, ConstructWithInitializerList) {
     test_map map(test_values);
     assert_assoc_values(map, sorted_test_values);
+}
+
+TEST(StaticAssocTest, ConstructMapWithDuplicatedKeys) {
+    test_map map(test_values_with_duplications);
+    assert_assoc_values(map, sorted_test_values_without_duplications);
+}
+
+TEST(StaticAssocTest, ConstructMultiMapWithDuplicatedKeys) {
+    test_multimap map(test_values_with_duplications);
+    assert_assoc_values(map, sorted_test_values_with_duplications);
 }

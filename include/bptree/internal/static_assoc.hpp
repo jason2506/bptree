@@ -76,6 +76,9 @@ class static_assoc
     key_compare key_comp() const;
     value_compare value_comp() const;
 
+ private:  // Private Method(s)
+    bool is_equal(value_type const& x, value_type const& y);
+
  private:  // Private Property(ies)
     underlying_type values_;
 };
@@ -102,7 +105,10 @@ static_assoc<T, U, N>::static_assoc(InputIt first, InputIt last, key_compare con
   : static_assoc(comp) {
     while (first != last) {
         auto pos = std::upper_bound(values_.cbegin(), values_.cend(), *first, value_comp());
-        values_.insert(pos, *first);
+        if (!U || pos == begin() || !is_equal(*(pos - 1), *first)) {
+            values_.insert(pos, *first);
+        }
+
         ++first;
     }
 }
@@ -224,6 +230,11 @@ template <typename T, bool U, std::size_t N>
 inline typename static_assoc<T, U, N>::value_compare
 static_assoc<T, U, N>::value_comp() const {
     return value_compare(*this);
+}
+
+template <typename T, bool U, std::size_t N>
+inline bool static_assoc<T, U, N>::is_equal(value_type const& x, value_type const& y) {
+    return !value_compare::operator()(x, y) && !value_compare::operator()(y, x);
 }
 
 }  // namespace internal
