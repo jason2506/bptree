@@ -53,6 +53,8 @@ class static_assoc
     template <typename InputIt>
     static_assoc(InputIt first, InputIt last, key_compare const& comp = key_compare());
     static_assoc(std::initializer_list<value_type> il, key_compare const& comp = key_compare());
+    static_assoc(static_assoc const&) = default;
+    static_assoc(static_assoc&&) = default;
 
     bool empty() const noexcept;
     bool full() const noexcept;
