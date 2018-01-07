@@ -84,6 +84,7 @@ class static_assoc
     enable_if_value_constructible_t<V, iterator> insert(const_iterator hint, V&& value);
     template <typename InputIt>
     void insert(InputIt first, InputIt last);
+    void insert(std::initializer_list<value_type> il);
     template <typename... Args>
     insert_result_t emplace(Args&&... args);
     template <typename... Args>
@@ -217,6 +218,11 @@ void static_assoc<T, U, N>::insert(InputIt first, InputIt last) {
         insert(*first);
         ++first;
     }
+}
+
+template <typename T, bool U, std::size_t N>
+inline void static_assoc<T, U, N>::insert(std::initializer_list<value_type> il) {
+    insert(il.begin(), il.end());
 }
 
 template <typename T, bool U, std::size_t N>
