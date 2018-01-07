@@ -102,6 +102,43 @@ class static_assoc
     constexpr size_type max_size() const noexcept;
     constexpr size_type capacity() const noexcept;
 
+    size_type count(key_type const& key) const;
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    size_type count(K const& key) const;
+    iterator find(key_type const& key);
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    iterator find(K const& key);
+    const_iterator find(key_type const& key) const;
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    const_iterator find(K const& key) const;
+    std::pair<iterator, iterator> equal_range(key_type const& key);
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    std::pair<iterator, iterator> equal_range(K const& key);
+    std::pair<const_iterator, const_iterator> equal_range(key_type const& key) const;
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    std::pair<const_iterator, const_iterator> equal_range(K const& key) const;
+    iterator lower_bound(key_type const& key);
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    iterator lower_bound(K const& key);
+    const_iterator lower_bound(key_type const& key) const;
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    const_iterator lower_bound(K const& key) const;
+    iterator upper_bound(key_type const& key);
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    iterator upper_bound(K const& key);
+    const_iterator upper_bound(key_type const& key) const;
+    template <typename K, typename Compare = key_compare,
+              typename = typename Compare::is_transparent>
+    const_iterator upper_bound(K const& key) const;
+
     iterator begin() noexcept;
     const_iterator begin() const noexcept;
     const_iterator cbegin() const noexcept;
@@ -278,10 +315,9 @@ static_assoc<T, U, N>::erase(const_iterator first, const_iterator last) {
 template <typename T, bool U, std::size_t N>
 typename static_assoc<T, U, N>::size_type
 static_assoc<T, U, N>::erase(key_type const& key) {
-    auto first = std::lower_bound(values_.cbegin(), values_.cend(), key, core_comp());
-    auto last = std::upper_bound(values_.cbegin(), values_.cend(), key, core_comp());
-    erase(first, last);
-    return last - first;
+    auto range = equal_range(key);
+    erase(range.first, range.second);
+    return range.second - range.first;
 }
 
 template <typename T, bool U, std::size_t N>
@@ -315,6 +351,147 @@ template <typename T, bool U, std::size_t N>
 inline constexpr typename static_assoc<T, U, N>::size_type
 static_assoc<T, U, N>::capacity() const noexcept {
     return values_.capacity();
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::size_type
+static_assoc<T, U, N>::count(key_type const& key) const {
+    auto range = equal_range(key);
+    return range.second - range.first;
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline typename static_assoc<T, U, N>::size_type
+static_assoc<T, U, N>::count(K const& key) const {
+    auto range = equal_range(key);
+    return range.second - range.first;
+}
+
+template <typename T, bool U, std::size_t N>
+typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::find(key_type const& key) {
+    auto it = lower_bound(key);
+    if (it != end() && core_comp()(key, *it)) {
+        it = end();
+    }
+
+    return it;
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::find(K const& key) {
+    auto it = lower_bound(key);
+    if (it != end() && core_comp()(key, *it)) {
+        it = end();
+    }
+
+    return it;
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::find(key_type const& key) const {
+    return const_cast<static_assoc*>(this)->find(key);
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::find(K const& key) const {
+    return const_cast<static_assoc*>(this)->find(key);
+}
+
+template <typename T, bool U, std::size_t N>
+inline std::pair<
+    typename static_assoc<T, U, N>::iterator,
+    typename static_assoc<T, U, N>::iterator
+>
+static_assoc<T, U, N>::equal_range(key_type const& key) {
+    return std::equal_range(begin(), end(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline std::pair<
+    typename static_assoc<T, U, N>::iterator,
+    typename static_assoc<T, U, N>::iterator
+>
+static_assoc<T, U, N>::equal_range(K const& key) {
+    return std::equal_range(begin(), end(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+inline std::pair<
+    typename static_assoc<T, U, N>::const_iterator,
+    typename static_assoc<T, U, N>::const_iterator
+>
+static_assoc<T, U, N>::equal_range(key_type const& key) const {
+    return std::equal_range(cbegin(), cend(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline std::pair<
+    typename static_assoc<T, U, N>::const_iterator,
+    typename static_assoc<T, U, N>::const_iterator
+>
+static_assoc<T, U, N>::equal_range(K const& key) const {
+    return std::equal_range(cbegin(), cend(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::lower_bound(key_type const& key) {
+    return std::lower_bound(begin(), end(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::lower_bound(K const& key) {
+    return std::lower_bound(begin(), end(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::lower_bound(key_type const& key) const {
+    return std::lower_bound(cbegin(), cend(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::lower_bound(K const& key) const {
+    return std::lower_bound(cbegin(), cend(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::upper_bound(key_type const& key) {
+    return std::upper_bound(begin(), end(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::upper_bound(K const& key) {
+    return std::upper_bound(begin(), end(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::upper_bound(key_type const& key) const {
+    return std::upper_bound(cbegin(), cend(), key, core_comp());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename K, typename Compare, typename>
+inline typename static_assoc<T, U, N>::const_iterator
+static_assoc<T, U, N>::upper_bound(K const& key) const {
+    return std::upper_bound(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, bool U, std::size_t N>

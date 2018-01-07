@@ -359,3 +359,29 @@ TEST(StaticAssocTest, EraseWithKey) {
     assert_assoc_values(map, expected_values);
     EXPECT_EQ(3, num_erased);
 }
+
+TEST(StaticAssocTest, CountAndFindValues) {
+    using value_type = std::pair<int const, char>;
+    static_multimap<int, char, assoc_size> map({
+        value_type(1, 'a'),
+        value_type(4, 'b'),
+        value_type(4, 'c'),
+        value_type(6, 'd'),
+        value_type(6, 'e'),
+        value_type(6, 'f'),
+        value_type(7, 'g'),
+        value_type(7, 'h'),
+        value_type(7, 'i'),
+        value_type(7, 'j')
+    });
+
+    EXPECT_EQ(1, map.count(1));
+    EXPECT_EQ(2, map.count(4));
+    EXPECT_EQ(3, map.count(6));
+    EXPECT_EQ(4, map.count(7));
+
+    EXPECT_EQ(map.begin(), map.find(1));
+    EXPECT_EQ(map.begin() + 1, map.find(4));
+    EXPECT_EQ(map.begin() + 1 + 2, map.find(6));
+    EXPECT_EQ(map.begin() + 1 + 2 + 3, map.find(7));
+}
