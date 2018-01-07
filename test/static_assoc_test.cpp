@@ -329,3 +329,33 @@ TEST(StaticAssocTest, InsertIteratorPair) {
     map.insert(extra_test_values.begin(), extra_test_values.end());
     assert_assoc_values(map, all_sorted_test_values);
 }
+
+TEST(StaticAssocTest, EraseWithKey) {
+    using value_type = std::pair<int const, char>;
+    static_multimap<int, char, assoc_size> map({
+        value_type(1, 'a'),
+        value_type(4, 'b'),
+        value_type(4, 'c'),
+        value_type(6, 'd'),
+        value_type(6, 'e'),
+        value_type(6, 'f'),
+        value_type(7, 'g'),
+        value_type(7, 'h'),
+        value_type(7, 'i'),
+        value_type(7, 'j')
+    });
+
+    auto num_erased = map.erase(6);
+    auto expected_values = {
+        value_type(1, 'a'),
+        value_type(4, 'b'),
+        value_type(4, 'c'),
+        value_type(7, 'g'),
+        value_type(7, 'h'),
+        value_type(7, 'i'),
+        value_type(7, 'j')
+    };
+
+    assert_assoc_values(map, expected_values);
+    EXPECT_EQ(3, num_erased);
+}

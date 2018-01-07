@@ -32,6 +32,7 @@ class static_assoc
  private:  // Private Type(s)
     using value_traits = ValueTraits;
     using underlying_type = static_vector<typename value_traits::value_type, N>;
+    using core_compare = typename value_traits::core_compare;
 
     using insert_result_t = typename std::conditional<
             Unique,
@@ -89,6 +90,9 @@ class static_assoc
     insert_result_t emplace(Args&&... args);
     template <typename... Args>
     iterator emplace_hint(const_iterator hint, Args&&... args);
+    iterator erase(const_iterator pos);
+    iterator erase(const_iterator first, const_iterator last);
+    size_type erase(key_type const& key);
     void clear() noexcept;
 
     bool empty() const noexcept;
@@ -114,6 +118,7 @@ class static_assoc
     value_compare value_comp() const;
 
  private:  // Private Method(s)
+    core_compare core_comp() const;
     template <typename V>
     std::pair<iterator, bool> insert_uncheck(const_iterator pos, V&& value, std::true_type);
     template <typename V>
@@ -251,6 +256,27 @@ static_assoc<T, U, N>::emplace_hint(const_iterator hint, Args&&... args) {
 }
 
 template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::erase(const_iterator pos) {
+    return values_.erase(pos);
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::erase(const_iterator first, const_iterator last) {
+    return values_.erase(first, last);
+}
+
+template <typename T, bool U, std::size_t N>
+typename static_assoc<T, U, N>::size_type
+static_assoc<T, U, N>::erase(key_type const& key) {
+    auto first = std::lower_bound(values_.cbegin(), values_.cend(), key, core_comp());
+    auto last = std::upper_bound(values_.cbegin(), values_.cend(), key, core_comp());
+    erase(first, last);
+    return last - first;
+}
+
+template <typename T, bool U, std::size_t N>
 inline void static_assoc<T, U, N>::clear() noexcept {
     values_.clear();
 }
@@ -365,6 +391,12 @@ template <typename T, bool U, std::size_t N>
 inline typename static_assoc<T, U, N>::value_compare
 static_assoc<T, U, N>::value_comp() const {
     return value_compare(*this);
+}
+
+template <typename T, bool U, std::size_t N>
+inline typename static_assoc<T, U, N>::core_compare
+static_assoc<T, U, N>::core_comp() const {
+    return core_compare(*this);
 }
 
 template <typename T, bool U, std::size_t N>
