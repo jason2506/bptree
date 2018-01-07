@@ -79,6 +79,9 @@ class static_assoc
     insert_result_t insert(value_type const& value);
     template <typename V>
     enable_if_value_constructible_t<V, insert_result_t> insert(V&& value);
+    iterator insert(const_iterator hint, value_type const& value);
+    template <typename V>
+    enable_if_value_constructible_t<V, iterator> insert(const_iterator hint, V&& value);
     template <typename... Args>
     insert_result_t emplace(Args&&... args);
     template <typename... Args>
@@ -180,6 +183,29 @@ inline static_assoc<T, U, N>::enable_if_value_constructible_t<
 >
 static_assoc<T, U, N>::insert(V&& value) {
     return emplace(std::forward<V>(value));
+}
+
+template <typename T, bool U, std::size_t N>
+typename static_assoc<T, U, N>::iterator
+static_assoc<T, U, N>::insert(const_iterator hint, value_type const& value) {
+    auto first = cbegin();
+    auto last = cend();
+    if (hint != first && value_compare::operator()(value, *(hint - 1))) {
+        hint = std::upper_bound(first, hint, value, value_comp());
+    } else if (hint != last && !value_compare::operator()(value, *hint)) {
+        hint = std::upper_bound(hint + 1, last, value, value_comp());
+    }
+
+    return insert_hint_uncheck(hint, value, std::integral_constant<bool, U>());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename V>
+inline static_assoc<T, U, N>::enable_if_value_constructible_t<
+    V, typename static_assoc<T, U, N>::iterator
+>
+static_assoc<T, U, N>::insert(const_iterator hint, V&& value) {
+    return emplace_hint(hint, std::forward<V>(value));
 }
 
 template <typename T, bool U, std::size_t N>
