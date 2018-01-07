@@ -9,10 +9,12 @@
 #include <cstddef>
 
 #include <algorithm>
+#include <initializer_list>
 #include <list>
 #include <memory>
 #include <sstream>
 #include <type_traits>
+#include <utility>
 
 #include <gtest/gtest.h>
 
