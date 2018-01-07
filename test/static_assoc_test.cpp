@@ -266,3 +266,49 @@ TEST(StaticAssocTest, EmplaceValueWithDuplicatedKeyIntoMultiMap) {
         assert_assoc_values(map, sorted_test_values_with_inserted_duplication);
     }
 }
+
+TEST(StaticAssocTest, InsertValueConstructible) {
+    struct foo {
+        explicit foo(int i) : i(i) { /* do nothing */ }
+        int i;
+    };
+
+    struct bar {
+        explicit bar(int i) : v(foo(i)) { /* do nothing */ }
+        explicit bar(foo const& v) : v(v) { /* do nothing */ }
+        bool operator==(bar const& other) const { return v.i == other.v.i; }
+        foo v;
+    };
+
+    auto compare = [](bar const& x, bar const& y) { return x.v.i < y.v.i; };
+
+    auto init_values = { bar(3), bar(1), bar(4) };
+    foo inserted_value(2);
+    auto expected_values = { bar(1), bar(2), bar(3), bar(4) };
+
+    using set_type = static_multiset<bar, assoc_size, decltype(compare)>;
+
+    // insert without hint
+    {
+        set_type set(init_values, compare);
+
+        auto it = set.insert(inserted_value);
+
+        EXPECT_EQ(bar(inserted_value), *it);
+        assert_assoc_values(set, expected_values);
+    }
+
+    // insert with hint
+    for (std::size_t hint_offset = 0; hint_offset < init_values.size(); ++hint_offset) {
+        std::ostringstream ss;
+        ss << "hint_offset = " << hint_offset;
+        SCOPED_TRACE(ss.str());
+
+        set_type set(init_values, compare);
+
+        auto it = set.insert(set.begin() + hint_offset, inserted_value);
+
+        EXPECT_EQ(bar(inserted_value), *it);
+        assert_assoc_values(set, expected_values);
+    }
+}

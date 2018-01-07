@@ -39,6 +39,12 @@ class static_assoc
             typename underlying_type::iterator
         >::type;
 
+    template <typename V, typename T>
+    using enable_if_value_constructible_t = typename std::enable_if<
+            std::is_constructible<typename value_traits::value_type, V&&>::value,
+            T
+        >::type;
+
  public:  // Public Type(s)
     using key_type = typename value_traits::key_type;
     using value_type = typename value_traits::value_type;
@@ -71,6 +77,8 @@ class static_assoc
     static_assoc& operator=(static_assoc&&) = default;
 
     insert_result_t insert(value_type const& value);
+    template <typename V>
+    enable_if_value_constructible_t<V, insert_result_t> insert(V&& value);
     template <typename... Args>
     insert_result_t emplace(Args&&... args);
     template <typename... Args>
@@ -163,6 +171,15 @@ typename static_assoc<T, U, N>::insert_result_t
 static_assoc<T, U, N>::insert(value_type const& value) {
     auto it = std::upper_bound(cbegin(), cend(), value, value_comp());
     return insert_uncheck(it, value, std::integral_constant<bool, U>());
+}
+
+template <typename T, bool U, std::size_t N>
+template <typename V>
+inline static_assoc<T, U, N>::enable_if_value_constructible_t<
+    V, typename static_assoc<T, U, N>::insert_result_t
+>
+static_assoc<T, U, N>::insert(V&& value) {
+    return emplace(std::forward<V>(value));
 }
 
 template <typename T, bool U, std::size_t N>
