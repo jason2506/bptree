@@ -76,6 +76,7 @@ class static_assoc
     static_assoc& operator=(std::initializer_list<value_type> il);
     static_assoc& operator=(static_assoc const&) = default;
     static_assoc& operator=(static_assoc&&) = default;
+    void swap(static_assoc& other);
 
     insert_result_t insert(value_type const& value);
     template <typename V>
@@ -175,6 +176,13 @@ static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
     }
 
     return *this;
+}
+
+template <typename T, bool U, std::size_t N>
+inline void static_assoc<T, U, N>::swap(static_assoc& other) {
+    value_traits::swap(other);
+    value_compare::swap(other);
+    values_.swap(other.values_);
 }
 
 template <typename T, bool U, std::size_t N>
@@ -434,5 +442,19 @@ static_assoc<T, U, N>::insert_hint_uncheck(const_iterator pos, V&& value, std::f
 }  // namespace internal
 
 }  // namespace bptree
+
+/************************************************
+ * Implementation: std::swap(static_assoc<T, U, N>&, static_assoc<T, U, N>&)
+ ************************************************/
+
+namespace std {
+
+template <typename T, bool U, std::size_t N>
+void swap(bptree::internal::static_assoc<T, U, N>& v1,
+          bptree::internal::static_assoc<T, U, N>& v2) {
+    v1.swap(v2);
+}
+
+}  // namespace std
 
 #endif  // BPTREE_INTERNAL_STATIC_ASSOC_HPP_
