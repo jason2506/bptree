@@ -155,6 +155,19 @@ class static_assoc
     key_compare key_comp() const;
     value_compare value_comp() const;
 
+    friend bool operator==(static_assoc const& x, static_assoc const& y)
+        { return x.values_ == y.values_; }
+    friend bool operator!=(static_assoc const& x, static_assoc const& y)
+        { return x.values_ != y.values_; }
+    friend bool operator> (static_assoc const& x, static_assoc const& y)
+        { return x.values_ > y.values_; }
+    friend bool operator< (static_assoc const& x, static_assoc const& y)
+        { return x.values_ < y.values_; }
+    friend bool operator>=(static_assoc const& x, static_assoc const& y)
+        { return x.values_ >= y.values_; }
+    friend bool operator<=(static_assoc const& x, static_assoc const& y)
+        { return x.values_ <= y.values_; }
+
  private:  // Private Method(s)
     core_compare core_comp() const;
     template <typename V>
