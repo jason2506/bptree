@@ -10,7 +10,9 @@ class BPTreeConan(ConanFile):
     author = 'Chi-En Wu'
 
     settings = ('os', 'compiler', 'build_type', 'arch')
-    generators = ('cmake', 'txt', 'env')
+    generators = ('cmake', 'txt')
+    no_copy_source = True
+
     options = {
         'enable_conan': [True, False],
     }
@@ -28,28 +30,26 @@ class BPTreeConan(ConanFile):
     )
 
     def requirements(self):
-        if self.scope.dev and self.scope.build_tests:
-            self.requires('gtest/1.8.0@lasote/stable', private=True)
+        if self.develop:
+            self.requires('gtest/1.8.0@lasote/stable')
 
     def build(self):
-        extra_opts = []
-        extra_opts.append('-DENABLE_CONAN={}'.format(
-            self.options.enable_conan,
-        ))
-        extra_opts.append('-DBUILD_TESTING={}'.format(
-            bool(self.scope.dev and self.scope.build_tests),
-        ))
-        extra_opts.append('-DCMAKE_INSTALL_PREFIX="{}"'.format(
-            self.package_folder,
-        ))
+        enable_testing = 'gtest' in self.deps_cpp_info.deps
 
-        cmake = CMake(self.settings)
-        self.run('cmake "{src_dir}" {opts} {extra_opts}'.format(
-            src_dir=self.conanfile_directory,
-            opts=cmake.command_line,
-            extra_opts=' '.join(extra_opts),
-        ))
-        self.run('cmake --build . {}'.format(cmake.build_config))
+        cmake = CMake(self)
+        cmake.configure(defs={
+            'ENABLE_CONAN': self.options.enable_conan,
+            'BUILD_TESTING': enable_testing,
+        })
+        cmake.build()
+        if enable_testing:
+            cmake.test()
+
+        cmake.install()
 
     def package(self):
-        self.run('cmake --build . --target install')
+        # files are copied by cmake.install()
+        pass
+
+    def package_id(self):
+        self.info.header_only()
