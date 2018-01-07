@@ -98,6 +98,17 @@ test_value_list constexpr extra_test_values = {
     test_value_type(4, 'h')
 };
 
+test_value_list constexpr all_sorted_test_values = {
+    test_value_type(1, 'b'),
+    test_value_type(2, 'g'),
+    test_value_type(3, 'e'),
+    test_value_type(4, 'h'),
+    test_value_type(5, 'c'),
+    test_value_type(6, 'a'),
+    test_value_type(7, 'd'),
+    test_value_type(8, 'f'),
+};
+
 std::size_t constexpr num_test_values = test_values.size();
 
 template <typename Assoc, typename ValueList>
@@ -311,4 +322,10 @@ TEST(StaticAssocTest, InsertValueConstructible) {
         EXPECT_EQ(bar(inserted_value), *it);
         assert_assoc_values(set, expected_values);
     }
+}
+
+TEST(StaticAssocTest, InsertIteratorPair) {
+    test_map map(test_values.begin(), test_values.end());
+    map.insert(extra_test_values.begin(), extra_test_values.end());
+    assert_assoc_values(map, all_sorted_test_values);
 }
