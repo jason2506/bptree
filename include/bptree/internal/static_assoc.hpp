@@ -70,6 +70,7 @@ class static_assoc
     static_assoc& operator=(static_assoc const&) = default;
     static_assoc& operator=(static_assoc&&) = default;
 
+    insert_result_t insert(value_type const& value);
     template <typename... Args>
     insert_result_t emplace(Args&&... args);
     template <typename... Args>
@@ -155,6 +156,13 @@ static_assoc<T, U, N>::operator=(std::initializer_list<value_type> il) {
     }
 
     return *this;
+}
+
+template <typename T, bool U, std::size_t N>
+typename static_assoc<T, U, N>::insert_result_t
+static_assoc<T, U, N>::insert(value_type const& value) {
+    auto it = std::upper_bound(cbegin(), cend(), value, value_comp());
+    return insert_uncheck(it, value, std::integral_constant<bool, U>());
 }
 
 template <typename T, bool U, std::size_t N>
