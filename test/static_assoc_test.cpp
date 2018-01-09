@@ -18,25 +18,29 @@
 
 #include <gtest/gtest.h>
 
+#include <bptree/internal/allow_duplicates.hpp>
+#include <bptree/internal/deny_duplicates.hpp>
 #include <bptree/internal/map_traits.hpp>
 #include <bptree/internal/set_traits.hpp>
 #include <bptree/internal/static_assoc.hpp>
 
+using bptree::internal::allow_duplicates;
+using bptree::internal::deny_duplicates;
 using bptree::internal::map_traits;
 using bptree::internal::set_traits;
 using bptree::internal::static_assoc;
 
 template <typename Key, typename T, std::size_t N, typename Compare = std::less<Key>>
-using static_map = static_assoc<map_traits<Key, T, Compare>, true, N>;
+using static_map = static_assoc<map_traits<Key, T, Compare>, deny_duplicates, N>;
 
 template <typename Key, typename T, std::size_t N, typename Compare = std::less<Key>>
-using static_multimap = static_assoc<map_traits<Key, T, Compare>, false, N>;
+using static_multimap = static_assoc<map_traits<Key, T, Compare>, allow_duplicates, N>;
 
 template <typename T, std::size_t N, typename Compare = std::less<T>>
-using static_set = static_assoc<set_traits<T, Compare>, true, N>;
+using static_set = static_assoc<set_traits<T, Compare>, deny_duplicates, N>;
 
 template <typename T, std::size_t N, typename Compare = std::less<T>>
-using static_multiset = static_assoc<set_traits<T, Compare>, false, N>;
+using static_multiset = static_assoc<set_traits<T, Compare>, allow_duplicates, N>;
 
 std::size_t constexpr assoc_size = 10;
 
