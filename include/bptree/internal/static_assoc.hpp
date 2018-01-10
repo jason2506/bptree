@@ -13,7 +13,9 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <stdexcept>
 #include <type_traits>
+#include <tuple>
 #include <utility>
 
 #include "./deny_duplicates.hpp"
@@ -169,7 +171,7 @@ class static_assoc_base
     friend bool operator<=(static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ <= y.values_; }
 
- private:  // Private Method(s)
+ protected:  // Protected Method(s)
     core_compare core_comp() const;
 
  private:  // Private Property(ies)
@@ -197,8 +199,17 @@ class static_assoc<map_traits<Key, T, Compare>, deny_duplicates, N>
  private:  // Private Type(s)
     using base_t = static_assoc_base<map_traits<Key, T, Compare>, deny_duplicates, N>;
 
+ public:  // Public Type(s)
+    using mapped_type = typename base_t::mapped_type;
+    using key_type = typename base_t::key_type;;
+
  public:  // Public Method(s)
     using base_t::base_t;
+
+    mapped_type& operator[](key_type const& key);
+    mapped_type& operator[](key_type&& key);
+    mapped_type& at(key_type const& key);
+    mapped_type const& at(key_type const& key) const;
 };
 
 /************************************************
@@ -613,6 +624,52 @@ template <typename T, template <typename, typename> class I, std::size_t N>
 inline typename static_assoc_base<T, I, N>::core_compare
 static_assoc_base<T, I, N>::core_comp() const {
     return core_compare(*this);
+}
+
+/************************************************
+ * Implementation: class static_assoc<map_traits<K, T, C>, deny_duplicates, N>
+ ************************************************/
+
+template <typename K, typename T, typename C, std::size_t N>
+typename static_assoc<map_traits<K, T, C>, deny_duplicates, N>::mapped_type&
+static_assoc<map_traits<K, T, C>, deny_duplicates, N>::operator[](key_type const& key) {
+    auto it = this->lower_bound(key);
+    if (this->core_comp()(key, *it)) {
+        it = this->emplace_hint(it, std::piecewise_construct,
+                                std::forward_as_tuple(key), std::tuple<>());
+    }
+
+    return it->second;
+}
+
+template <typename K, typename T, typename C, std::size_t N>
+typename static_assoc<map_traits<K, T, C>, deny_duplicates, N>::mapped_type&
+static_assoc<map_traits<K, T, C>, deny_duplicates, N>::operator[](key_type&& key) {
+    auto it = this->lower_bound(key);
+    if (this->core_comp()(key, *it)) {
+        it = this->emplace_hint(it, std::piecewise_construct,
+                                std::forward_as_tuple(std::move(key)), std::tuple<>());
+    }
+
+    return it->second;
+}
+
+template <typename K, typename T, typename C, std::size_t N>
+inline typename static_assoc<map_traits<K, T, C>, deny_duplicates, N>::mapped_type&
+static_assoc<map_traits<K, T, C>, deny_duplicates, N>::at(key_type const& key) {
+    return const_cast<mapped_type&>(
+        static_cast<static_assoc const*>(this)->at(key));
+}
+
+template <typename K, typename T, typename C, std::size_t N>
+typename static_assoc<map_traits<K, T, C>, deny_duplicates, N>::mapped_type const&
+static_assoc<map_traits<K, T, C>, deny_duplicates, N>::at(key_type const& key) const {
+    auto it = this->find(key);
+    if (it == this->cend()) {
+        throw std::out_of_range("key not found");
+    }
+
+    return it->second;
 }
 
 }  // namespace internal

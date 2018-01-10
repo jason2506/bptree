@@ -47,7 +47,12 @@ std::size_t constexpr assoc_size = 10;
 using test_map = static_map<int, char, assoc_size>;
 using test_multimap = static_multimap<int, char, assoc_size>;
 using test_value_type = typename test_map::value_type;
+using test_key_type = typename test_map::key_type;
+using test_mapped_type = typename test_map::key_type;
 using test_value_list = std::initializer_list<test_value_type>;
+
+test_key_type constexpr nonexistent_key = -1;
+test_mapped_type constexpr nonexistent_value = 'x';
 
 test_value_list constexpr test_values = {
     test_value_type(6, 'a'),
@@ -65,7 +70,9 @@ test_value_list constexpr sorted_test_values = {
     test_value_type(7, 'd')
 };
 
-test_value_type constexpr duplicated_inserted_value(6, 'x');
+std::size_t constexpr num_test_values = test_values.size();
+
+test_value_type constexpr duplicated_inserted_value(6, nonexistent_value);
 std::size_t constexpr duplicated_index = 3;
 
 test_value_list constexpr sorted_test_values_with_inserted_duplication = {
@@ -114,8 +121,6 @@ test_value_list constexpr all_sorted_test_values = {
     test_value_type(7, 'd'),
     test_value_type(8, 'f'),
 };
-
-std::size_t constexpr num_test_values = test_values.size();
 
 template <typename Assoc, typename ValueList>
 void assert_assoc_values(Assoc const& assoc, ValueList list) {
@@ -390,4 +395,28 @@ TEST(StaticAssocTest, CountAndFindValues) {
     EXPECT_EQ(map.begin() + 1, map.find(4));
     EXPECT_EQ(map.begin() + 1 + 2, map.find(6));
     EXPECT_EQ(map.begin() + 1 + 2 + 3, map.find(7));
+}
+
+TEST(StaticAssocTest, AccessMapWithIndex) {
+    test_map map(test_values);
+    for (auto value : map) {
+        std::ostringstream ss;
+        ss << "key = " << value.first << " value = " << value.second;
+        SCOPED_TRACE(ss.str());
+
+        EXPECT_EQ(value.second, map.at(value.first));
+        EXPECT_EQ(value.second, map[value.first]);
+
+        map.at(value.first) = value.second + 1;
+        EXPECT_EQ(value.second + 1, map.at(value.first));
+
+        map[value.first] = value.second - 1;
+        EXPECT_EQ(value.second - 1, map[value.first]);
+    }
+
+    EXPECT_THROW(map.at(nonexistent_key), std::out_of_range);
+
+    map[nonexistent_key] = nonexistent_value;
+    EXPECT_EQ(nonexistent_value, map.at(nonexistent_key));
+    EXPECT_EQ(nonexistent_value, map[nonexistent_key]);
 }
