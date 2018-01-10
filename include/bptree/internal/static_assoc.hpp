@@ -16,6 +16,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "./deny_duplicates.hpp"
+#include "./map_traits.hpp"
 #include "./static_vector.hpp"
 
 namespace bptree {
@@ -23,11 +25,11 @@ namespace bptree {
 namespace internal {
 
 /************************************************
- * Declaration: class static_assoc<T, I, N>
+ * Declaration: class static_assoc_base<T, I, N>
  ************************************************/
 
 template <typename ValueTraits, template <typename, typename> class InsertionPolicy, std::size_t N>
-class static_assoc
+class static_assoc_base
   : public ValueTraits,
     private ValueTraits::value_compare {
  private:  // Private Type(s)
@@ -63,18 +65,19 @@ class static_assoc
     using const_reverse_iterator = typename underlying_type::const_reverse_iterator;
 
  public:  // Public Method(s)
-    static_assoc();
-    explicit static_assoc(key_compare comp);
+    static_assoc_base();
+    explicit static_assoc_base(key_compare comp);
     template <typename InputIt>
-    static_assoc(InputIt first, InputIt last, key_compare const& comp = key_compare());
-    static_assoc(std::initializer_list<value_type> il, key_compare const& comp = key_compare());
-    static_assoc(static_assoc const&) = default;
-    static_assoc(static_assoc&&) = default;
+    static_assoc_base(InputIt first, InputIt last, key_compare const& comp = key_compare());
+    static_assoc_base(std::initializer_list<value_type> il,
+                      key_compare const& comp = key_compare());
+    static_assoc_base(static_assoc_base const&) = default;
+    static_assoc_base(static_assoc_base&&) = default;
 
-    static_assoc& operator=(std::initializer_list<value_type> il);
-    static_assoc& operator=(static_assoc const&) = default;
-    static_assoc& operator=(static_assoc&&) = default;
-    void swap(static_assoc& other);
+    static_assoc_base& operator=(std::initializer_list<value_type> il);
+    static_assoc_base& operator=(static_assoc_base const&) = default;
+    static_assoc_base& operator=(static_assoc_base&&) = default;
+    void swap(static_assoc_base& other);
 
     insert_result_t insert(value_type const& value);
     template <typename V>
@@ -153,17 +156,17 @@ class static_assoc
     key_compare key_comp() const;
     value_compare value_comp() const;
 
-    friend bool operator==(static_assoc const& x, static_assoc const& y)
+    friend bool operator==(static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ == y.values_; }
-    friend bool operator!=(static_assoc const& x, static_assoc const& y)
+    friend bool operator!=(static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ != y.values_; }
-    friend bool operator> (static_assoc const& x, static_assoc const& y)
+    friend bool operator> (static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ > y.values_; }
-    friend bool operator< (static_assoc const& x, static_assoc const& y)
+    friend bool operator< (static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ < y.values_; }
-    friend bool operator>=(static_assoc const& x, static_assoc const& y)
+    friend bool operator>=(static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ >= y.values_; }
-    friend bool operator<=(static_assoc const& x, static_assoc const& y)
+    friend bool operator<=(static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ <= y.values_; }
 
  private:  // Private Method(s)
@@ -174,25 +177,50 @@ class static_assoc
 };
 
 /************************************************
- * Implementation: class static_assoc<T, I, N>
+ * Declaration: class static_assoc<T, I, N>
+ ************************************************/
+
+template <typename ValueTraits, template <typename, typename> class InsertionPolicy, std::size_t N>
+class static_assoc
+  : public static_assoc_base<ValueTraits, InsertionPolicy, N> {
+ public:  // Public Method(s)
+    using static_assoc_base<ValueTraits, InsertionPolicy, N>::static_assoc_base;
+};
+
+/************************************************
+ * Declaration: class static_assoc<map_traits<K, T, C>, deny_duplicates, N>
+ ************************************************/
+
+template <typename Key, typename T, typename Compare, std::size_t N>
+class static_assoc<map_traits<Key, T, Compare>, deny_duplicates, N>
+  : public static_assoc_base<map_traits<Key, T, Compare>, deny_duplicates, N> {
+ private:  // Private Type(s)
+    using base_t = static_assoc_base<map_traits<Key, T, Compare>, deny_duplicates, N>;
+
+ public:  // Public Method(s)
+    using base_t::base_t;
+};
+
+/************************************************
+ * Implementation: class static_assoc_base<T, I, N>
  ************************************************/
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline static_assoc<T, I, N>::static_assoc()
-  : static_assoc(key_compare()) {
+inline static_assoc_base<T, I, N>::static_assoc_base()
+  : static_assoc_base(key_compare()) {
     // do nothing
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline static_assoc<T, I, N>::static_assoc(key_compare comp)
+inline static_assoc_base<T, I, N>::static_assoc_base(key_compare comp)
   : value_compare(comp), values_() {
     // do nothing
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename InputIt>
-static_assoc<T, I, N>::static_assoc(InputIt first, InputIt last, key_compare const& comp)
-  : static_assoc(comp) {
+static_assoc_base<T, I, N>::static_assoc_base(InputIt first, InputIt last, key_compare const& comp)
+  : static_assoc_base(comp) {
     while (first != last) {
         emplace_hint(cend(), *first);
         ++first;
@@ -200,15 +228,15 @@ static_assoc<T, I, N>::static_assoc(InputIt first, InputIt last, key_compare con
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline static_assoc<T, I, N>::static_assoc(std::initializer_list<value_type> il,
-                                           key_compare const& comp)
-  : static_assoc(il.begin(), il.end(), comp) {
+inline static_assoc_base<T, I, N>::static_assoc_base(
+        std::initializer_list<value_type> il, key_compare const& comp)
+  : static_assoc_base(il.begin(), il.end(), comp) {
     // do nothing
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-static_assoc<T, I, N>&
-static_assoc<T, I, N>::operator=(std::initializer_list<value_type> il) {
+static_assoc_base<T, I, N>&
+static_assoc_base<T, I, N>::operator=(std::initializer_list<value_type> il) {
     clear();
 
     for (auto& value : il) {
@@ -219,31 +247,31 @@ static_assoc<T, I, N>::operator=(std::initializer_list<value_type> il) {
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline void static_assoc<T, I, N>::swap(static_assoc& other) {
+inline void static_assoc_base<T, I, N>::swap(static_assoc_base& other) {
     value_traits::swap(other);
     value_compare::swap(other);
     values_.swap(other.values_);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-typename static_assoc<T, I, N>::insert_result_t
-static_assoc<T, I, N>::insert(value_type const& value) {
+typename static_assoc_base<T, I, N>::insert_result_t
+static_assoc_base<T, I, N>::insert(value_type const& value) {
     auto it = std::upper_bound(cbegin(), cend(), value, value_comp());
     return insertion_policy::try_insert(values_, value_comp(), it, value);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename V>
-inline static_assoc<T, I, N>::enable_if_value_constructible_t<
-    V, typename static_assoc<T, I, N>::insert_result_t
+inline static_assoc_base<T, I, N>::enable_if_value_constructible_t<
+    V, typename static_assoc_base<T, I, N>::insert_result_t
 >
-static_assoc<T, I, N>::insert(V&& value) {
+static_assoc_base<T, I, N>::insert(V&& value) {
     return emplace(std::forward<V>(value));
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::insert(const_iterator hint, value_type const& value) {
+typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::insert(const_iterator hint, value_type const& value) {
     auto first = cbegin();
     auto last = cend();
     if (hint != first && value_compare::operator()(value, *(hint - 1))) {
@@ -257,16 +285,16 @@ static_assoc<T, I, N>::insert(const_iterator hint, value_type const& value) {
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename V>
-inline static_assoc<T, I, N>::enable_if_value_constructible_t<
-    V, typename static_assoc<T, I, N>::iterator
+inline static_assoc_base<T, I, N>::enable_if_value_constructible_t<
+    V, typename static_assoc_base<T, I, N>::iterator
 >
-static_assoc<T, I, N>::insert(const_iterator hint, V&& value) {
+static_assoc_base<T, I, N>::insert(const_iterator hint, V&& value) {
     return emplace_hint(hint, std::forward<V>(value));
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename InputIt>
-void static_assoc<T, I, N>::insert(InputIt first, InputIt last) {
+void static_assoc_base<T, I, N>::insert(InputIt first, InputIt last) {
     while (first != last) {
         insert(*first);
         ++first;
@@ -274,14 +302,14 @@ void static_assoc<T, I, N>::insert(InputIt first, InputIt last) {
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline void static_assoc<T, I, N>::insert(std::initializer_list<value_type> il) {
+inline void static_assoc_base<T, I, N>::insert(std::initializer_list<value_type> il) {
     insert(il.begin(), il.end());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename... Args>
-typename static_assoc<T, I, N>::insert_result_t
-static_assoc<T, I, N>::emplace(Args&&... args) {
+typename static_assoc_base<T, I, N>::insert_result_t
+static_assoc_base<T, I, N>::emplace(Args&&... args) {
     value_type value(std::forward<Args>(args)...);
     auto it = std::upper_bound(cbegin(), cend(), value, value_comp());
     return insertion_policy::try_insert(values_, value_comp(), it, std::move(value));
@@ -289,8 +317,8 @@ static_assoc<T, I, N>::emplace(Args&&... args) {
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename... Args>
-typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::emplace_hint(const_iterator hint, Args&&... args) {
+typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::emplace_hint(const_iterator hint, Args&&... args) {
     value_type value(std::forward<Args>(args)...);
     auto first = cbegin();
     auto last = cend();
@@ -304,76 +332,76 @@ static_assoc<T, I, N>::emplace_hint(const_iterator hint, Args&&... args) {
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::erase(const_iterator pos) {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::erase(const_iterator pos) {
     return values_.erase(pos);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::erase(const_iterator first, const_iterator last) {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::erase(const_iterator first, const_iterator last) {
     return values_.erase(first, last);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-typename static_assoc<T, I, N>::size_type
-static_assoc<T, I, N>::erase(key_type const& key) {
+typename static_assoc_base<T, I, N>::size_type
+static_assoc_base<T, I, N>::erase(key_type const& key) {
     auto range = equal_range(key);
     erase(range.first, range.second);
     return range.second - range.first;
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline void static_assoc<T, I, N>::clear() noexcept {
+inline void static_assoc_base<T, I, N>::clear() noexcept {
     values_.clear();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline bool static_assoc<T, I, N>::empty() const noexcept {
+inline bool static_assoc_base<T, I, N>::empty() const noexcept {
     return values_.empty();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline bool static_assoc<T, I, N>::full() const noexcept {
+inline bool static_assoc_base<T, I, N>::full() const noexcept {
     return values_.full();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::size_type
-static_assoc<T, I, N>::size() const noexcept {
+inline typename static_assoc_base<T, I, N>::size_type
+static_assoc_base<T, I, N>::size() const noexcept {
     return values_.size();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline constexpr typename static_assoc<T, I, N>::size_type
-static_assoc<T, I, N>::max_size() const noexcept {
+inline constexpr typename static_assoc_base<T, I, N>::size_type
+static_assoc_base<T, I, N>::max_size() const noexcept {
     return values_.max_size();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline constexpr typename static_assoc<T, I, N>::size_type
-static_assoc<T, I, N>::capacity() const noexcept {
+inline constexpr typename static_assoc_base<T, I, N>::size_type
+static_assoc_base<T, I, N>::capacity() const noexcept {
     return values_.capacity();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::size_type
-static_assoc<T, I, N>::count(key_type const& key) const {
+inline typename static_assoc_base<T, I, N>::size_type
+static_assoc_base<T, I, N>::count(key_type const& key) const {
     auto range = equal_range(key);
     return range.second - range.first;
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-inline typename static_assoc<T, I, N>::size_type
-static_assoc<T, I, N>::count(K const& key) const {
+inline typename static_assoc_base<T, I, N>::size_type
+static_assoc_base<T, I, N>::count(K const& key) const {
     auto range = equal_range(key);
     return range.second - range.first;
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::find(key_type const& key) {
+typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::find(key_type const& key) {
     auto it = lower_bound(key);
     if (it != end() && core_comp()(key, *it)) {
         it = end();
@@ -384,8 +412,8 @@ static_assoc<T, I, N>::find(key_type const& key) {
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::find(K const& key) {
+typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::find(K const& key) {
     auto it = lower_bound(key);
     if (it != end() && core_comp()(key, *it)) {
         it = end();
@@ -395,195 +423,195 @@ static_assoc<T, I, N>::find(K const& key) {
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::find(key_type const& key) const {
-    return const_cast<static_assoc*>(this)->find(key);
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::find(key_type const& key) const {
+    return const_cast<static_assoc_base*>(this)->find(key);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::find(K const& key) const {
-    return const_cast<static_assoc*>(this)->find(key);
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::find(K const& key) const {
+    return const_cast<static_assoc_base*>(this)->find(key);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 inline std::pair<
-    typename static_assoc<T, I, N>::iterator,
-    typename static_assoc<T, I, N>::iterator
+    typename static_assoc_base<T, I, N>::iterator,
+    typename static_assoc_base<T, I, N>::iterator
 >
-static_assoc<T, I, N>::equal_range(key_type const& key) {
+static_assoc_base<T, I, N>::equal_range(key_type const& key) {
     return std::equal_range(begin(), end(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
 inline std::pair<
-    typename static_assoc<T, I, N>::iterator,
-    typename static_assoc<T, I, N>::iterator
+    typename static_assoc_base<T, I, N>::iterator,
+    typename static_assoc_base<T, I, N>::iterator
 >
-static_assoc<T, I, N>::equal_range(K const& key) {
+static_assoc_base<T, I, N>::equal_range(K const& key) {
     return std::equal_range(begin(), end(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 inline std::pair<
-    typename static_assoc<T, I, N>::const_iterator,
-    typename static_assoc<T, I, N>::const_iterator
+    typename static_assoc_base<T, I, N>::const_iterator,
+    typename static_assoc_base<T, I, N>::const_iterator
 >
-static_assoc<T, I, N>::equal_range(key_type const& key) const {
+static_assoc_base<T, I, N>::equal_range(key_type const& key) const {
     return std::equal_range(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
 inline std::pair<
-    typename static_assoc<T, I, N>::const_iterator,
-    typename static_assoc<T, I, N>::const_iterator
+    typename static_assoc_base<T, I, N>::const_iterator,
+    typename static_assoc_base<T, I, N>::const_iterator
 >
-static_assoc<T, I, N>::equal_range(K const& key) const {
+static_assoc_base<T, I, N>::equal_range(K const& key) const {
     return std::equal_range(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::lower_bound(key_type const& key) {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::lower_bound(key_type const& key) {
     return std::lower_bound(begin(), end(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::lower_bound(K const& key) {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::lower_bound(K const& key) {
     return std::lower_bound(begin(), end(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::lower_bound(key_type const& key) const {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::lower_bound(key_type const& key) const {
     return std::lower_bound(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::lower_bound(K const& key) const {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::lower_bound(K const& key) const {
     return std::lower_bound(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::upper_bound(key_type const& key) {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::upper_bound(key_type const& key) {
     return std::upper_bound(begin(), end(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::upper_bound(K const& key) {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::upper_bound(K const& key) {
     return std::upper_bound(begin(), end(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::upper_bound(key_type const& key) const {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::upper_bound(key_type const& key) const {
     return std::upper_bound(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 template <typename K, typename Compare, typename>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::upper_bound(K const& key) const {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::upper_bound(K const& key) const {
     return std::upper_bound(cbegin(), cend(), key, core_comp());
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::begin() noexcept {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::begin() noexcept {
     return values_.begin();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::begin() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::begin() const noexcept {
     return cbegin();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::cbegin() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::cbegin() const noexcept {
     return values_.cbegin();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::iterator
-static_assoc<T, I, N>::end() noexcept {
+inline typename static_assoc_base<T, I, N>::iterator
+static_assoc_base<T, I, N>::end() noexcept {
     return values_.end();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::end() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::end() const noexcept {
     return cend();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_iterator
-static_assoc<T, I, N>::cend() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_iterator
+static_assoc_base<T, I, N>::cend() const noexcept {
     return values_.cend();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::reverse_iterator
-static_assoc<T, I, N>::rbegin() noexcept {
+inline typename static_assoc_base<T, I, N>::reverse_iterator
+static_assoc_base<T, I, N>::rbegin() noexcept {
     return values_.rbegin();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_reverse_iterator
-static_assoc<T, I, N>::rbegin() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_reverse_iterator
+static_assoc_base<T, I, N>::rbegin() const noexcept {
     return crbegin();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_reverse_iterator
-static_assoc<T, I, N>::crbegin() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_reverse_iterator
+static_assoc_base<T, I, N>::crbegin() const noexcept {
     return values_.crbegin();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::reverse_iterator
-static_assoc<T, I, N>::rend() noexcept {
+inline typename static_assoc_base<T, I, N>::reverse_iterator
+static_assoc_base<T, I, N>::rend() noexcept {
     return values_.rend();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_reverse_iterator
-static_assoc<T, I, N>::rend() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_reverse_iterator
+static_assoc_base<T, I, N>::rend() const noexcept {
     return crend();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::const_reverse_iterator
-static_assoc<T, I, N>::crend() const noexcept {
+inline typename static_assoc_base<T, I, N>::const_reverse_iterator
+static_assoc_base<T, I, N>::crend() const noexcept {
     return values_.crend();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::key_compare
-static_assoc<T, I, N>::key_comp() const {
+inline typename static_assoc_base<T, I, N>::key_compare
+static_assoc_base<T, I, N>::key_comp() const {
     return key_compare(*this);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::value_compare
-static_assoc<T, I, N>::value_comp() const {
+inline typename static_assoc_base<T, I, N>::value_compare
+static_assoc_base<T, I, N>::value_comp() const {
     return value_compare(*this);
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
-inline typename static_assoc<T, I, N>::core_compare
-static_assoc<T, I, N>::core_comp() const {
+inline typename static_assoc_base<T, I, N>::core_compare
+static_assoc_base<T, I, N>::core_comp() const {
     return core_compare(*this);
 }
 
