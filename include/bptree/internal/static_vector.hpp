@@ -290,7 +290,10 @@ inline static_vector<T, N>& static_vector<T, N>::operator=(std::initializer_list
 
 template <typename T, std::size_t N>
 inline static_vector<T, N>& static_vector<T, N>::operator=(static_vector const& other) {
-    assign(other.data(), other.data() + other.size());
+    if (this != &other) {
+        assign(other.data(), other.data() + other.size());
+    }
+
     return *this;
 }
 

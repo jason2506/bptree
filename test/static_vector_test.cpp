@@ -511,6 +511,15 @@ TEST_F(StaticVectorTest, AssignWithOperatorAndAnotherVector) {
     assert_static_vector_values(v2, expected);
 }
 
+TEST_F(StaticVectorTest, AssignToSelf) {
+    static_vector<custom_type, vector_size> v = WRAP_VALUES(custom_type, TEST_VALUES);
+    v = v;
+
+    EXPECT_EQ(num_test_values, custom_type::num_instances());
+    expected_result<num_test_values> expected(test_values, constructed_with::copy_ctor);
+    assert_static_vector_values(v, expected);
+}
+
 TEST_F(StaticVectorTest, AssignWithOperatorAndMovedVector) {
     static_vector<custom_type, vector_size> v1 = WRAP_VALUES(custom_type, TEST_VALUES);
     decltype(v1) v2 = WRAP_VALUES(custom_type, EXTRA_TEST_VALUES);
