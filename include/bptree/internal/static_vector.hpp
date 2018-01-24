@@ -185,8 +185,6 @@ class static_vector {
     bool empty() const noexcept;
     bool full() const noexcept;
     size_type size() const noexcept;
-    constexpr size_type max_size() const noexcept;
-    constexpr size_type capacity() const noexcept;
 
     iterator begin() noexcept;
     const_iterator begin() const noexcept;
@@ -200,6 +198,10 @@ class static_vector {
     reverse_iterator rend() noexcept;
     const_reverse_iterator rend() const noexcept;
     const_reverse_iterator crend() const noexcept;
+
+ public:  // Static Public Method(s)
+    static constexpr size_type max_size() noexcept;
+    static constexpr size_type capacity() noexcept;
 
  private:  // Private Method(s)
     template <typename... Args>
@@ -582,13 +584,13 @@ inline typename static_vector<T, N>::size_type static_vector<T, N>::size() const
 
 template <typename T, std::size_t N>
 inline constexpr typename static_vector<T, N>::size_type
-static_vector<T, N>::max_size() const noexcept {
+static_vector<T, N>::max_size() noexcept {
     return N;
 }
 
 template <typename T, std::size_t N>
 inline constexpr typename static_vector<T, N>::size_type
-static_vector<T, N>::capacity() const noexcept {
+static_vector<T, N>::capacity() noexcept {
     return max_size();
 }
 

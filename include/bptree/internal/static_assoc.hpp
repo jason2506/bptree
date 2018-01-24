@@ -102,8 +102,6 @@ class static_assoc_base
     bool empty() const noexcept;
     bool full() const noexcept;
     size_type size() const noexcept;
-    constexpr size_type max_size() const noexcept;
-    constexpr size_type capacity() const noexcept;
 
     size_type count(key_type const& key) const;
     template <typename K, typename Compare = key_compare,
@@ -170,6 +168,10 @@ class static_assoc_base
         { return x.values_ >= y.values_; }
     friend bool operator<=(static_assoc_base const& x, static_assoc_base const& y)
         { return x.values_ <= y.values_; }
+
+ public:  // Static Public Method(s)
+    static constexpr size_type max_size() noexcept;
+    static constexpr size_type capacity() noexcept;
 
  protected:  // Protected Method(s)
     core_compare core_comp() const;
@@ -385,14 +387,14 @@ static_assoc_base<T, I, N>::size() const noexcept {
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 inline constexpr typename static_assoc_base<T, I, N>::size_type
-static_assoc_base<T, I, N>::max_size() const noexcept {
-    return values_.max_size();
+static_assoc_base<T, I, N>::max_size() noexcept {
+    return underlying_type::max_size();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
 inline constexpr typename static_assoc_base<T, I, N>::size_type
-static_assoc_base<T, I, N>::capacity() const noexcept {
-    return values_.capacity();
+static_assoc_base<T, I, N>::capacity() noexcept {
+    return underlying_type::capacity();
 }
 
 template <typename T, template <typename, typename> class I, std::size_t N>
